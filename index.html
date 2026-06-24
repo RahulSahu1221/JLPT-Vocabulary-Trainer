@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta name="theme-color" content="#07080d" id="metaThemeColor">
+    <meta name="description" content="Premium JLPT N5-N4 Vocabulary Trainer featuring Spaced Repetition, Advanced Analytics, offline support, and interactive flashcards.">
+    <meta name="keywords" content="JLPT, Japanese, N5, N4, Vocabulary, Flashcards, SRS, Learn Japanese">
+    <meta property="og:title" content="JLPT N5-N4 Vocabulary Trainer">
+    <meta property="og:description" content="Master Japanese vocabulary with modern spaced repetition and analytics.">
+    <meta property="og:type" content="website">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/jpeg" href="data/assets/logo.jpg">
+    <link rel="apple-touch-icon" href="data/assets/logo.jpg">
+    <title>JLPT N5–N4 Vocabulary Trainer</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalApplication",
+      "name": "JLPT N5-N4 Vocabulary Trainer",
+      "operatingSystem": "Web",
+      "applicationCategory": "Educational",
+      "offers": { "@type": "Offer", "price": "0" }
+    }
+    </script>
+</head>
+<body>
+
+<canvas id="lightRaysCanvas" aria-hidden="true"></canvas>
+
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+
+<div class="pill-nav-wrap" id="pillNavWrap">
+    <nav class="pill-nav" id="pillNav" role="navigation" aria-label="Primary">
+        <a class="pill-logo" href="#" aria-label="Dashboard" id="logoLink">
+            <img src="data/assets/logo.jpg" alt="JLPT Trainer Logo" id="logoImg">
+        </a>
+
+        <!-- DESKTOP NAVIGATION ITEMS -->
+        <div class="pill-nav-items" id="pillNavItems">
+            <ul class="pill-list" role="menubar">
+                <li role="none">
+                    <button class="pill active-pill" id="dashboardBtn" role="menuitem" aria-label="Dashboard">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack"><span class="pill-label">🏠 Home</span><span class="pill-label-hover" aria-hidden="true">🏠 Home</span></span>
+                    </button>
+                </li>
+                <li role="none">
+                    <button class="pill" id="vocabBtn" role="menuitem" aria-label="Vocabulary">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack"><span class="pill-label">📖 Vocab</span><span class="pill-label-hover" aria-hidden="true">📖 Vocab</span></span>
+                    </button>
+                </li>
+                <li role="none">
+                    <button class="pill" id="reviewBtn" role="menuitem" aria-label="SRS Review">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack"><span class="pill-label">🧠 Review</span><span class="pill-label-hover" aria-hidden="true">🧠 Review</span></span>
+                    </button>
+                </li>
+                <!-- THE CARDS BUTTON HAS BEEN COMPLETELY REMOVED FROM HERE -->
+                <li role="none">
+                    <button class="pill" id="quizBtn" role="menuitem" aria-label="Quiz">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack"><span class="pill-label">⚡ Quiz</span><span class="pill-label-hover" aria-hidden="true">⚡ Quiz</span></span>
+                    </button>
+                </li>
+                <li role="none">
+                    <button class="pill pill-theme" id="themeToggleBtn" role="menuitem" aria-label="Toggle theme">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack"><span class="pill-label" id="themeLabel">☀️ Light</span><span class="pill-label-hover" aria-hidden="true" id="themeLabelHover">☀️ Light</span></span>
+                    </button>
+                </li>
+                <li role="none">
+                    <button class="pill" id="settingsBtn" role="menuitem" aria-label="Settings">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack"><span class="pill-label">⚙️</span><span class="pill-label-hover" aria-hidden="true">⚙️</span></span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- MOBILE HAMBURGER ICON -->
+        <button class="hamburger-btn mobile-only" id="hamburgerBtn" aria-label="Toggle menu" aria-expanded="false">
+            <span class="ham-line"></span><span class="ham-line"></span>
+        </button>
+    </nav>
+
+    <!-- MOBILE MENU DROPDOWN -->
+    <div class="mobile-popover" id="mobilePopover" aria-hidden="true">
+        <ul class="mobile-menu-list">
+            <li><button class="mobile-menu-link" id="mDashboardBtn">🏠 Home</button></li>
+            <li><button class="mobile-menu-link" id="mVocabBtn">📖 Vocab</button></li>
+            <li><button class="mobile-menu-link" id="mReviewBtn">🧠 SRS Review</button></li>
+            <!-- THE MOBILE CARDS BUTTON HAS BEEN REMOVED FROM HERE -->
+            <li><button class="mobile-menu-link" id="mQuizBtn">⚡ Quiz</button></li>
+            <li><button class="mobile-menu-link" id="mThemeBtn">☀️ Light Mode</button></li>
+            <li><button class="mobile-menu-link" id="mSettingsBtn">⚙️ Settings</button></li>
+        </ul>
+    </div>
+</div>
+
+<!-- FLOATING TOOLBAR -->
+<div class="floating-toolbar" id="floatingToolbar">
+    <div class="glass-dropdown" id="lessonDropdown" tabindex="0" role="listbox" aria-label="Select Lesson">
+        <div class="dropdown-selected" id="lessonSelected">Lesson 1</div>
+        <div class="dropdown-options hidden" id="lessonOptions"></div>
+    </div>
+    <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input type="text" id="searchBox" placeholder="Search (Romaji, Kana, Kanji)..." aria-label="Search vocabulary" autocomplete="off" spellcheck="false" maxlength="100">
+    </div>
+</div>
+
+<main class="container" id="mainContent" tabindex="-1">
+    
+    <div class="lesson-title-row" id="globalProgressHeader">
+        <div class="lesson-title" id="lessonTitle">Lesson 1</div>
+        <div class="progress-wrap">
+            <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+    </div>
+
+    <div id="dashboardView" class="hidden view-panel">
+        <h2 class="algerian text-center" style="color:var(--accent); margin-bottom:20px;">Welcome Back, Learner!</h2>
+        <div class="dashboard-grid">
+            <div class="dash-card">
+                <h3>Daily Goal</h3>
+                <div class="dash-stat" id="dailyGoalStat">0 / 20</div>
+                <div class="progress"><div class="progress-fill" id="goalProgressFill" style="width:0%"></div></div>
+            </div>
+            <div class="dash-card">
+                <h3>Current Streak</h3>
+                <div class="dash-stat" style="color:var(--accent2)" id="streakStat">🔥 0 Days</div>
+            </div>
+            <div class="dash-card">
+                <h3>Total Learned</h3>
+                <div class="dash-stat" style="color:var(--success)" id="totalLearnedStat">0 Words</div>
+            </div>
+            <div class="dash-card">
+                <h3>Due Reviews</h3>
+                <div class="dash-stat" style="color:var(--danger)" id="dueReviewStat">0 Due</div>
+                <button class="nav-btn" style="margin-top:10px; width:100%;" onclick="$('reviewBtn').click()">Start Review</button>
+            </div>
+        </div>
+
+        <h2 class="section-heading">Quick Actions</h2>
+        <div class="quick-actions">
+            <button class="nav-btn" onclick="$('favBtn').click()">⭐ Favorites</button>
+            <button class="nav-btn" onclick="$('weakBtn').click()">📉 Weak Words</button>
+        </div>
+
+        <h2 class="section-heading">Achievements</h2>
+        <div class="achievements-list" id="achievementsList"></div>
+    </div>
+
+    <div id="vocabView" class="hidden view-panel">
+        <button id="favBtn" class="hidden"></button>
+        <button id="weakBtn" class="hidden"></button>
+        <div class="cards" id="vocabularyContainer"></div>
+    </div>
+
+    <!-- UNIFIED REVIEW & CARDS VIEW -->
+    <div id="reviewView" class="hidden view-panel">
+        <div class="quiz-box srs-box">
+            <h2 class="algerian text-center" style="color:var(--accent3);">Spaced Repetition</h2>
+            <p id="srsCounter" class="text-center" style="margin-top:10px; color:var(--text-tertiary);">Card 1 / 1</p>
+            
+            <div class="flashcard" id="srsFlashcard" style="margin-top:20px;" role="button" tabindex="0" aria-label="Flashcard">
+                <div class="flashcard-inner">
+                    <div class="flash-face front-face" id="srsFront">Loading...</div>
+                    <div class="flash-face back-face"  id="srsBack">Loading...</div>
+                </div>
+            </div>
+
+            <p id="srsHint" class="flash-hint text-center">tap card to reveal</p>
+
+            <!-- ALWAYS VISIBLE SRS ACTIONS -->
+            <div class="srs-actions" id="srsActions" style="margin-top: 15px;">
+                <button class="srs-btn srs-again pill-anim" id="srsBtn1">
+                    <span class="hover-circle" aria-hidden="true"></span>
+                    <span class="label-stack"><span class="pill-label">Again</span><span class="pill-label-hover" aria-hidden="true">Again</span></span>
+                </button>
+                <button class="srs-btn srs-hard pill-anim" id="srsBtn2">
+                    <span class="hover-circle" aria-hidden="true"></span>
+                    <span class="label-stack"><span class="pill-label">Hard</span><span class="pill-label-hover" aria-hidden="true">Hard</span></span>
+                </button>
+                <button class="srs-btn srs-good pill-anim" id="srsBtn3">
+                    <span class="hover-circle" aria-hidden="true"></span>
+                    <span class="label-stack"><span class="pill-label">Good</span><span class="pill-label-hover" aria-hidden="true">Good</span></span>
+                </button>
+                <button class="srs-btn srs-easy pill-anim" id="srsBtn4">
+                    <span class="hover-circle" aria-hidden="true"></span>
+                    <span class="label-stack"><span class="pill-label">Easy</span><span class="pill-label-hover" aria-hidden="true">Easy</span></span>
+                </button>
+            </div>
+
+            <!-- PREV / NEXT NAVIGATION -->
+            <div class="flashcard-navigation" style="margin-top: 20px;">
+                <button id="reviewPrevBtn" class="nav-btn" aria-label="Previous card">&#8592; Prev</button>
+                <button id="reviewNextBtn" class="nav-btn" aria-label="Next card">Next &#8594;</button>
+            </div>
+            
+        </div>
+    </div>
+
+    <div id="quizView" class="hidden view-panel">
+        <div class="quiz-box">
+            <div class="quiz-mode-toggle" role="group" aria-label="Quiz mode">
+                <button id="modeKanjiBtn" class="mode-btn active-mode">Kanji → Meaning</button>
+                <button id="modeMeaningBtn" class="mode-btn">Meaning → Kanji</button>
+            </div>
+            <div class="quiz-stats">
+                <span id="scoreDisplay">⭐ Score: 0</span>
+                <span id="streakDisplay">🔥 Streak: 0</span>
+                <span id="bestStreakDisplay">🏆 Best: 0</span>
+            </div>
+            <div class="quiz-progress" role="progressbar"><div id="quizProgressFill"></div></div>
+            <p id="quizCounter" aria-live="polite">Question 1 / 20</p>
+            <div class="quiz-question-box">
+                <h2 id="quizQuestion">Loading…</h2>
+                <button id="quizSpeakBtn" aria-label="Speak question">&#128266;</button>
+            </div>
+            <button class="quiz-option" id="optionA"></button>
+            <button class="quiz-option" id="optionB"></button>
+            <button class="quiz-option" id="optionC"></button>
+            <button class="quiz-option" id="optionD"></button>
+            <div id="quizResult" aria-live="polite" role="status"></div>
+        </div>
+    </div>
+
+    <div id="settingsView" class="hidden view-panel">
+        <div class="quiz-box" style="max-width: 800px; padding-bottom: 40px;">
+            <h2 class="algerian text-center" style="color:var(--text); margin-bottom: 20px;">Settings & Data</h2>
+            
+            <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="dash-card">
+                    <h3>Data Management</h3>
+                    <p style="font-size:12px; color:var(--text-tertiary); margin-bottom:10px;">Backup or restore your SRS progress, streaks, and lists.</p>
+                    <button class="nav-btn" style="width:100%; margin-bottom:10px;" id="exportBtn">⬇️ Export Backup</button>
+                    <input type="file" id="importFile" accept=".json" style="display:none;">
+                    <button class="nav-btn" style="width:100%; margin-bottom:10px;" onclick="$('importFile').click()">⬆️ Import Backup</button>
+                    <button class="nav-btn" style="width:100%; border-color:var(--danger); color:var(--danger);" id="resetDataBtn">⚠️ Reset All Data</button>
+                </div>
+                
+                <div class="dash-card">
+                    <h3>Preferences</h3>
+                    <div style="margin-bottom:15px;">
+                        <label style="font-size:13px; color:var(--text-secondary);">Daily Goal (Words):</label><br>
+                        <select id="goalSelect" style="width:100%; margin-top:5px;" class="nav-btn">
+                            <option value="10">10 Words</option>
+                            <option value="20">20 Words</option>
+                            <option value="50">50 Words</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom:15px; display:flex; align-items:center; gap:10px;">
+                        <input type="checkbox" id="autoPlayAudio" style="transform:scale(1.2);"> 
+                        <label for="autoPlayAudio" style="font-size:13px; color:var(--text-secondary);">Auto-play Audio in Flashcards</label>
+                    </div>
+                    <button class="nav-btn" id="savePreferencesBtn" style="width:100%; margin-top:5px; background:var(--success-soft); color:var(--success); border-color:rgba(74,222,128,0.5);">OK</button>
+                </div>
+            </div>
+
+            <h2 class="section-heading">About Application</h2>
+            <div class="dash-card text-center" style="padding:30px;">
+                <p><strong>JLPT N5-N4 Vocabulary Trainer v2.0</strong></p>
+                <p style="font-size:13px; color:var(--text-tertiary); margin-top:10px;">Premium Progressive Web App equipped with Spaced Repetition System, Intelligent Fuzzy Search, and Advanced Analytics. Safe, fast, and fully offline capable.</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<button class="fab" id="feedbackFab" aria-label="Give Feedback">💬</button>
+
+<div id="toastContainer" aria-live="polite" class="toast-container"></div>
+
+<div class="modal-overlay hidden" id="cmdOverlay">
+    <div class="cmd-palette" id="cmdPalette">
+        <input type="text" id="cmdInput" placeholder="Type a command or search vocab (e.g. 'theme', 'quiz', 'mizu')..." autocomplete="off">
+        <ul id="cmdResults" class="cmd-results"></ul>
+    </div>
+</div>
+
+<div class="modal-overlay hidden" id="feedbackOverlay">
+    <div class="modal" role="dialog" aria-labelledby="feedbackTitle" aria-modal="true">
+        <h2 id="feedbackTitle" class="algerian" style="color:var(--accent);">Send Feedback</h2>
+        <select id="feedbackCategory" class="modal-input">
+            <option value="Feature Request">Feature Request</option>
+            <option value="Bug Report">Bug Report</option>
+            <option value="Vocab Correction">Vocabulary Correction</option>
+            <option value="Other">Other</option>
+        </select>
+        <textarea id="feedbackText" class="modal-input" rows="4" placeholder="Describe your feedback..."></textarea>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button class="nav-btn" style="flex:1" id="submitFeedbackBtn">Send</button>
+            <button class="nav-btn" style="flex:1; border-color:var(--text-muted); color:var(--text-muted);" onclick="closeFeedback()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<footer>JLPT N5–N4 Vocabulary Trainer &nbsp;·&nbsp; v2.0 &nbsp;·&nbsp; <kbd>Ctrl</kbd>+<kbd>K</kbd> Command Palette</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
