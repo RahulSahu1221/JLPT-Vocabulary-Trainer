@@ -1,8 +1,46 @@
+/*app.js 
+
 "use strict";
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// LIGHTRAYS — Vanilla WebGL background
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   JLPT N5–N4 VOCABULARY TRAINER — app.js
+   Core engine: background FX, store, dashboard, review (SRS), quiz, routing,
+   command palette, theming, SRS dock magnification.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Single shared key helper — every feature (favorites/learned/weak/SRS/decks)
+   must use the EXACT same identity for a word, or state silently desyncs for
+   any hiragana-only entry. This is the one and only place that decision lives.
+   ───────────────────────────────────────────────────────────────────────────── */
+function wordKey(w) {
+    if (!w) return "";
+    return w.kanji || w.hiragana || "";
+}
+window.wordKey = wordKey;
+
+
+function _scheduleReviewNotification() {
+    const now = Date.now();
+    const due = Object.values(srsData).filter(v => v && v.dueDate <= now + 86400000).length;
+    if (due > 0) {
+        setTimeout(() => {
+            if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+                try {
+                    new Notification("JLPT Trainer 🎌", {
+                        body: `You have ${due} word${due > 1 ? "s" : ""} ready for review!`,
+                        icon: "./data/assets/logo.jpg"
+                    });
+                } catch (_) { /* permission revoked between check and fire */ }
+            }
+        }, 5000);
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   LIGHTRAYS — Vanilla WebGL background
+   ═══════════════════════════════════════════════════════════════════════════════ */
 (function initLightRays() {
     const canvas = document.getElementById("lightRaysCanvas");
     if (!canvas) return;
@@ -12,18 +50,41 @@
     const VERT = `attribute vec2 aPos; void main() { gl_Position = vec4(aPos, 0.0, 1.0); }`;
     const FRAG = `precision highp float; uniform float iTime; uniform vec2 iRes; uniform vec2 rayPos; uniform vec2 rayDir; uniform vec3 raysColor; float rayStrength(vec2 src, vec2 dir, vec2 coord, float sA, float sB, float spd){ vec2 d = coord - src; float ca = dot(normalize(d), dir); float da = ca + 0.04 * sin(iTime*2.0 + length(d)*0.01)*0.2; float sp = pow(max(da,0.0), 1.0/0.55); float dist = length(d); float mxD = iRes.x * 1.6; float lf = clamp((mxD - dist)/mxD, 0.0, 1.0); float ff = clamp((iRes.x*1.2 - dist)/(iRes.x*1.2), 0.5, 1.0); float bs = clamp((0.45 + 0.15*sin(da*sA + iTime*spd)) + (0.30 + 0.20*cos(-da*sB + iTime*spd)), 0.0, 1.0); return bs * lf * ff * sp; } void main(){ vec2 coord = vec2(gl_FragCoord.x, iRes.y - gl_FragCoord.y); float r1 = rayStrength(rayPos, rayDir, coord, 36.2214, 21.1135, 1.5); float r2 = rayStrength(rayPos, rayDir, coord, 22.3991, 18.0234, 1.1); float v = r1*0.5 + r2*0.4; vec3 col = raysColor * v; gl_FragColor = vec4(col, v * 0.9); }`;
 
+    function compile(type, src) {
+        const sh = gl.createShader(type);
+        gl.shaderSource(sh, src);
+        gl.compileShader(sh);
+        if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+            console.warn("Shader compile failed:", gl.getShaderInfoLog(sh));
+            return null;
+        }
+        return sh;
+    }
+
+    const vs = compile(gl.VERTEX_SHADER, VERT);
+    const fs = compile(gl.FRAGMENT_SHADER, FRAG);
+    if (!vs || !fs) return;
+
     const prog = gl.createProgram();
-    const vs = gl.createShader(gl.VERTEX_SHADER), fs = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(vs, VERT); gl.compileShader(vs);
-    gl.shaderSource(fs, FRAG); gl.compileShader(fs);
-    gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog); gl.useProgram(prog);
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+    gl.useProgram(prog);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     const aPos = gl.getAttribLocation(prog, "aPos");
-    gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-    const U = { iTime: gl.getUniformLocation(prog, "iTime"), iRes: gl.getUniformLocation(prog, "iRes"), rayPos: gl.getUniformLocation(prog, "rayPos"), rayDir: gl.getUniformLocation(prog, "rayDir"), raysColor: gl.getUniformLocation(prog, "raysColor") };
+    const U = {
+        iTime: gl.getUniformLocation(prog, "iTime"),
+        iRes: gl.getUniformLocation(prog, "iRes"),
+        rayPos: gl.getUniformLocation(prog, "rayPos"),
+        rayDir: gl.getUniformLocation(prog, "rayDir"),
+        raysColor: gl.getUniformLocation(prog, "raysColor")
+    };
 
     const COLOR_DARK = [0.12, 0.45, 1.0];
     const COLOR_LIGHT = [0.30, 0.42, 0.78];
@@ -31,71 +92,84 @@
     let currentColor = COLOR_DARK.slice();
     let targetColor = COLOR_DARK.slice();
     let startColor = COLOR_DARK.slice();
-
     let colorT = 1;
     let fadeStart = 0;
 
     window.__setLightRaysTheme = (isLight) => {
-    startColor = currentColor.slice();
-    targetColor = isLight ? COLOR_LIGHT : COLOR_DARK;
-    colorT = 0;
-    fadeStart = performance.now();
-};
+        startColor = currentColor.slice();
+        targetColor = isLight ? COLOR_LIGHT : COLOR_DARK;
+        colorT = 0;
+        fadeStart = performance.now();
+    };
 
     function resize() {
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        canvas.width = window.innerWidth * dpr; canvas.height = window.innerHeight * dpr;
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
         gl.viewport(0, 0, canvas.width, canvas.height);
     }
-    window.addEventListener("resize", () => setTimeout(resize, 80), { passive: true }); resize();
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resize, 80);
+    }, { passive: true });
+    resize();
 
     function loop(ts) {
-        // Only run the heavy WebGL math if the tab is currently visible
         if (!document.hidden) {
             if (colorT < 1) {
                 colorT = Math.min(1, (performance.now() - fadeStart) / 500);
-               
-                currentColor = startColor.map((c, i) =>
-                    c + (targetColor[i] - c) * colorT
-                );
+                currentColor = startColor.map((c, i) => c + (targetColor[i] - c) * colorT);
             }
-            
-            gl.clear(gl.COLOR_BUFFER_BIT); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-            gl.uniform1f(U.iTime, ts * 0.0009); gl.uniform2f(U.iRes, canvas.width, canvas.height);
-            gl.uniform2f(U.rayPos, canvas.width * 0.5, -0.15 * canvas.height); gl.uniform2f(U.rayDir, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            gl.uniform1f(U.iTime, ts * 0.0009);
+            gl.uniform2f(U.iRes, canvas.width, canvas.height);
+            gl.uniform2f(U.rayPos, canvas.width * 0.5, -0.15 * canvas.height);
+            gl.uniform2f(U.rayDir, 0.0, 1.0);
             gl.uniform3f(U.raysColor, currentColor[0], currentColor[1], currentColor[2]);
             gl.drawArrays(gl.TRIANGLES, 0, 3);
         }
-        
-        // This keeps the loop alive in the background without burning CPU
         requestAnimationFrame(loop);
     }
-    
+
     if (document.body.classList.contains("light-theme")) window.__setLightRaysTheme(true);
-    
-    // The crucial ignition key that was missing!
-    requestAnimationFrame(loop); 
+    requestAnimationFrame(loop);
 })();
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// GLOBAL HELPERS & PWA INIT
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   GLOBAL HELPERS & PWA INIT
+   ═══════════════════════════════════════════════════════════════════════════════ */
 const $ = id => document.getElementById(id);
+window.$ = $;
+
 function haptic(ms = 15) {
     if (navigator.vibrate) {
-        navigator.vibrate(ms);
+        try { navigator.vibrate(ms); } catch (_) { /* some browsers throw on invalid pattern */ }
     }
 }
+window.haptic = haptic;
+
 function safeText(el, text) { if (el) el.textContent = String(text ?? ""); }
 
-// ADD THIS UTILITY:
+// Escapes a string for safe innerHTML insertion. Always run any user-, API-,
+// or third-party-sourced text through this before placing it in markup.
 function sanitizeHTML(str) {
-    const temp = document.createElement('div');
-    temp.textContent = str;
+    const temp = document.createElement("div");
+    temp.textContent = String(str ?? "");
     return temp.innerHTML;
 }
+window.sanitizeHTML = sanitizeHTML;
 
-// ADD THIS UTILITY:
+// Escapes a string for safe placement inside a single-quoted HTML attribute
+// (e.g. inline onclick="fn('...')"). sanitizeHTML alone is NOT enough here
+// because it doesn't escape the quote character itself.
+function sanitizeAttr(str) {
+   return sanitizeHTML(str).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+}
+window.sanitizeAttr = sanitizeAttr;
+
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -103,505 +177,773 @@ function shuffleArray(array) {
     }
     return array;
 }
+window.shuffleArray = shuffleArray;
 
-window.onerror = (msg, url, line) => { showToast(`Error: ${msg}`, 'error'); return false; };
-window.addEventListener('unhandledrejection', e => showToast(`Failed: ${e.reason}`, 'error'));
+// Production-safe global error handling: log full detail to console for
+// developers, but never leak raw stack/error text to the end user via toast.
+const IS_LOCALHOST = ["localhost", "127.0.0.1", ""].includes(location.hostname);
+window.onerror = (msg, url, line, col, err) => {
+    console.error("[JLPT Trainer]", msg, url, line, col, err);
+    if (IS_LOCALHOST) showToast(`Dev error: ${msg}`, "error");
+    else showToast("Something went wrong. Please try again.", "error");
+    return false;
+};
+window.addEventListener("unhandledrejection", e => {
+    console.error("[JLPT Trainer] Unhandled rejection:", e.reason);
+    if (IS_LOCALHOST) showToast(`Dev rejection: ${e.reason}`, "error");
+    else showToast("Something went wrong. Please try again.", "error");
+});
 
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(err => console.warn("SW registration failed:", err));
+    });
 }
 
 let japaneseVoice = null;
-
 function initSpeechVoices() {
+    if (!window.speechSynthesis) return;
     const voices = speechSynthesis.getVoices();
-
     japaneseVoice =
         voices.find(v => v.lang === "ja-JP") ||
         voices.find(v => v.lang.startsWith("ja")) ||
         null;
 }
+if (window.speechSynthesis) {
+    speechSynthesis.onvoiceschanged = initSpeechVoices;
+}
+document.addEventListener("click", initSpeechVoices, { once: true });
 
-speechSynthesis.onvoiceschanged = initSpeechVoices;
-
-document.addEventListener(
-    "click",
-    () => {
-        initSpeechVoices();
-    },
-    { once: true }
-);
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// DATA STORE ARCHITECTURE 
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DATA STORE
+   ═══════════════════════════════════════════════════════════════════════════════ */
 const store = {
-    get: (key, fb) => { try { return JSON.parse(localStorage.getItem(key)) ?? fb; } catch { return fb; } },
-    set: (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch { showToast("Storage quota exceeded!", "error"); } },
-    export: () => {
-        const data = { profile: store.get('jlpt_profile', {}), srs: store.get('jlpt_srs', {}), lesson: store.get('jlpt_lastLesson', 1) };
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `jlpt_backup_${new Date().toISOString().split('T')[0]}.json`;
-        a.click(); URL.revokeObjectURL(a.href);
+    get(key, fb) {
+        try {
+            const raw = localStorage.getItem(key);
+            if (raw === null) return fb;
+            const parsed = JSON.parse(raw);
+            return parsed === null || parsed === undefined ? fb : parsed;
+        } catch {
+            return fb;
+        }
     },
-    import: (file) => {
+    set(key, val) {
+        try {
+            localStorage.setItem(key, JSON.stringify(val));
+            return true;
+        } catch {
+            showToast("Storage quota exceeded!", "error");
+            return false;
+        }
+    },
+    export() {
+        const data = {
+            profile: store.get("jlpt_profile", {}),
+            srs: store.get("jlpt_srs", {}),
+            lesson: store.get("jlpt_lastLesson", 1),
+            decks: store.get("jlpt_decks", []),
+            xp: store.get("jlpt_xp", 0),
+            heatmap: store.get("jlpt_heatmap", {})
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        const objectUrl = URL.createObjectURL(blob);
+        a.href = objectUrl;
+        a.download = `jlpt_backup_${new Date().toISOString().split("T")[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 150);
+    },
+    import(file) {
         const reader = new FileReader();
         reader.onload = e => {
             try {
                 const data = JSON.parse(e.target.result);
-                if(data.profile) store.set('jlpt_profile', data.profile);
-                if(data.srs) store.set('jlpt_srs', data.srs);
-                showToast("Data Restored Successfully", "success"); setTimeout(()=>location.reload(), 1500);
-            } catch { showToast("Invalid backup file.", "error"); }
+                if (!data || typeof data !== 'object' || Array.isArray(data)) {
+                    showToast("Invalid backup file format.", "error"); return;
+                }
+                const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+                const isArr = v => Array.isArray(v);
+                if (data.profile && isObj(data.profile)) {
+                    const p = data.profile;
+                    const clean = {
+                        learned:   isArr(p.learned)   ? p.learned.filter(s => typeof s === 'string').slice(0, 10000) : [],
+                        favorites: isArr(p.favorites) ? p.favorites.filter(s => typeof s === 'string').slice(0, 10000) : [],
+                        weak:      isArr(p.weak)      ? p.weak.filter(s => typeof s === 'string').slice(0, 10000) : [],
+                        achievements: isArr(p.achievements) ? p.achievements.filter(s => typeof s === 'string').slice(0, 500) : [],
+                        streak:    typeof p.streak === 'number'    ? p.streak    : 0,
+                        bestStreak:typeof p.bestStreak === 'number'? p.bestStreak: 0,
+                        lastActive:typeof p.lastActive === 'number'? p.lastActive: 0,
+                        dailyGoal: typeof p.dailyGoal === 'number' ? p.dailyGoal : 20,
+                        wordsStudiedToday: typeof p.wordsStudiedToday === 'number' ? p.wordsStudiedToday : 0,
+                        autoPlay:  typeof p.autoPlay === 'boolean' ? p.autoPlay  : false
+                    };
+                    store.set("jlpt_profile", clean);
+                }
+                if (data.srs && isObj(data.srs)) store.set("jlpt_srs", data.srs);
+                if (data.decks && isArr(data.decks)) store.set("jlpt_decks", data.decks);
+                if (typeof data.xp === 'number') store.set("jlpt_xp", data.xp);
+                if (data.heatmap && isObj(data.heatmap)) store.set("jlpt_heatmap", data.heatmap);
+                showToast("Data restored successfully!", "success");
+                setTimeout(() => location.reload(), 1200);
+            } catch {
+                showToast("Invalid backup file.", "error");
+            }
         };
         reader.readAsText(file);
     }
 };
+window.store = store;
 
-let userProfile = store.get('jlpt_profile', {
+let userProfile = store.get("jlpt_profile", {
     learned: [], favorites: [], weak: [], streak: 0, bestStreak: 0, lastActive: 0,
     dailyGoal: 20, wordsStudiedToday: 0, autoPlay: false, achievements: []
 });
-let srsData = store.get('jlpt_srs', {}); 
+// Defensive defaults in case an older/partial profile is loaded from storage.
+userProfile.learned = userProfile.learned || [];
+userProfile.favorites = userProfile.favorites || [];
+userProfile.weak = userProfile.weak || [];
+userProfile.achievements = userProfile.achievements || [];
+userProfile.dailyGoal = userProfile.dailyGoal || 20;
+
+let srsData = store.get("jlpt_srs", {});
 
 const todayStr = new Date().toDateString();
-if (store.get('jlpt_lastActiveDate', '') !== todayStr) {
-    const last = new Date(userProfile.lastActive);
-    const diff = (new Date() - last) / (1000 * 60 * 60 * 24);
-    if (diff > 1 && diff <= 2) userProfile.streak++;
-    else if (diff > 2) userProfile.streak = 1;
-    else if (userProfile.streak === 0) userProfile.streak = 1;
-    
+if (store.get("jlpt_lastActiveDate", "") !== todayStr) {
+    const lastDateStr = store.get("jlpt_lastActiveDate", "");
+    if (lastDateStr) {
+        const lastDate  = new Date(lastDateStr);
+        const todayDate = new Date(todayStr);
+        const diffDays  = Math.round((todayDate - lastDate) / 86400000);
+        if (diffDays === 1) userProfile.streak++;
+        else if (diffDays > 1) userProfile.streak = 1;
+    } else {
+        userProfile.streak = userProfile.streak || 1;
+    }
+
     userProfile.wordsStudiedToday = 0;
-    store.set('jlpt_lastActiveDate', todayStr);
+    store.set("jlpt_lastActiveDate", todayStr);
 }
-userProfile.bestStreak = Math.max(userProfile.bestStreak, userProfile.streak);
+userProfile.bestStreak = Math.max(userProfile.bestStreak || 0, userProfile.streak);
 userProfile.lastActive = Date.now();
-store.set('jlpt_profile', userProfile);
+store.set("jlpt_profile", userProfile);
+window.userProfile = userProfile;
+window.srsData = srsData;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════════════════════════
-let vocabulary = [], filteredVocabulary = [], currentView = 'dashboardView';
-let reviewIndex = 0; // Unified tracker for the Review section
+/* ═══════════════════════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════════════════════ */
+let vocabulary = [], filteredVocabulary = [], currentView = "dashboardView";
+let reviewIndex = 0;
 let quizMode = "kanjiToMeaning", score = 0, qNum = 0, quizQueue = [];
+window.vocabulary = vocabulary;
+window.filteredVocabulary = filteredVocabulary;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// INTERSECTION OBSERVER & MAPPER
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   INTERSECTION OBSERVER (card reveal-on-scroll)
+   ═══════════════════════════════════════════════════════════════════════════════ */
 const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(e => {
         if (e.isIntersecting) { e.target.classList.add("revealed"); revealObserver.unobserve(e.target); }
     });
 }, { threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
 
-const r2k = {"a":"あ","i":"い","u":"う","e":"え","o":"お","ka":"か","ki":"き","ku":"く","ke":"け","ko":"こ","sa":"さ","shi":"し","su":"す","se":"せ","so":"そ","ta":"た","chi":"ち","tsu":"つ","te":"て","to":"と","na":"な","ni":"に","nu":"ぬ","ne":"ね","no":"の","ha":"は","hi":"ひ","fu":"ふ","he":"へ","ho":"ほ","ma":"ま","mi":"み","mu":"む","me":"め","mo":"も","ya":"や","yu":"ゆ","yo":"よ","ra":"ら","ri":"り","ru":"る","re":"れ","ro":"ろ","wa":"わ","wo":"を","nn":"ん","ga":"が","gi":"ぎ","gu":"ぐ","ge":"げ","go":"ご","za":"ざ","ji":"じ","zu":"ず","ze":"ぜ","zo":"ぞ","da":"だ","de":"で","do":"ど","ba":"ば","bi":"び","bu":"ぶ","be":"べ","bo":"ぼ","pa":"ぱ","pi":"ぴ","pu":"ぷ","pe":"ぺ","po":"ぽ","kya":"きゃ","kyu":"きゅ","kyo":"きょ","sha":"しゃ","shu":"しゅ","sho":"しょ","cha":"ちゃ","chu":"ちゅ","cho":"ちょ","nya":"にゃ","nyu":"にゅ","nyo":"にょ","hya":"ひゃ","hyu":"ひゅ","hyo":"ひょ","mya":"みゃ","myu":"みゅ","myo":"みょ","rya":"りゃ","ryu":"りゅ","ryo":"りょ","gya":"ぎゃ","gyu":"ぎゅ","gyo":"ぎょ","ja":"じゃ","ju":"じゅ","jo":"じょ","bya":"びゃ","byu":"びゅ","byo":"びょ","pya":"ぴゃ","pyu":"ぴゅ","pyo":"ぴょ"};
+/* ═══════════════════════════════════════════════════════════════════════════════
+   ROMAJI → HIRAGANA
+   ═══════════════════════════════════════════════════════════════════════════════ */
+const r2k = { "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お", "ka": "か", "ki": "き", "ku": "く", "ke": "け", "ko": "こ", "sa": "さ", "shi": "し", "su": "す", "se": "せ", "so": "そ", "ta": "た", "chi": "ち", "tsu": "つ", "te": "て", "to": "と", "na": "な", "ni": "に", "nu": "ぬ", "ne": "ね", "no": "の", "ha": "は", "hi": "ひ", "fu": "ふ", "he": "へ", "ho": "ほ", "ma": "ま", "mi": "み", "mu": "む", "me": "め", "mo": "も", "ya": "や", "yu": "ゆ", "yo": "よ", "ra": "ら", "ri": "り", "ru": "る", "re": "れ", "ro": "ろ", "wa": "わ", "wo": "を", "nn": "ん", "ga": "が", "gi": "ぎ", "gu": "ぐ", "ge": "げ", "go": "ご", "za": "ざ", "ji": "じ", "zu": "ず", "ze": "ぜ", "zo": "ぞ", "da": "だ", "de": "で", "do": "ど", "ba": "ば", "bi": "び", "bu": "ぶ", "be": "べ", "bo": "ぼ", "pa": "ぱ", "pi": "ぴ", "pu": "ぷ", "pe": "ぺ", "po": "ぽ", "kya": "きゃ", "kyu": "きゅ", "kyo": "きょ", "sha": "しゃ", "shu": "しゅ", "sho": "しょ", "cha": "ちゃ", "chu": "ちゅ", "cho": "ちょ", "nya": "にゃ", "nyu": "にゅ", "nyo": "にょ", "hya": "ひゃ", "hyu": "ひゅ", "hyo": "ひょ", "mya": "みゃ", "myu": "みゅ", "myo": "みょ", "rya": "りゃ", "ryu": "りゅ", "ryo": "りょ", "gya": "ぎゃ", "gyu": "ぎゅ", "gyo": "ぎょ", "ja": "じゃ", "ju": "じゅ", "jo": "じょ", "bya": "びゃ", "byu": "びゅ", "byo": "びょ", "pya": "ぴゃ", "pyu": "ぴゅ", "pyo": "ぴょ" };
 function normalizeRomaji(str) {
-    let s = str.toLowerCase(), res = "";
-    while(s.length) {
-        if(s.length>=3 && r2k[s.substring(0,3)]) { res += r2k[s.substring(0,3)]; s = s.substring(3); }
-        else if(s.length>=2 && r2k[s.substring(0,2)]) { res += r2k[s.substring(0,2)]; s = s.substring(2); }
-        else if(r2k[s.substring(0,1)]) { res += r2k[s.substring(0,1)]; s = s.substring(1); }
+    let s = String(str || "").toLowerCase(), res = "";
+    while (s.length) {
+        if (s.length >= 3 && r2k[s.substring(0, 3)]) { res += r2k[s.substring(0, 3)]; s = s.substring(3); }
+        else if (s.length >= 2 && r2k[s.substring(0, 2)]) { res += r2k[s.substring(0, 2)]; s = s.substring(2); }
+        else if (r2k[s.substring(0, 1)]) { res += r2k[s.substring(0, 1)]; s = s.substring(1); }
         else { res += s[0]; s = s.substring(1); }
     }
     return res;
 }
+window.normalizeRomaji = normalizeRomaji;
 
-function showToast(msg, type='success') {
-    const t = document.createElement('div'); t.className = `toast toast-${type}`; t.textContent = msg;
-    $('toastContainer').appendChild(t);
+/* ═══════════════════════════════════════════════════════════════════════════════
+   GLASS DROPDOWN — turns any <select data-glass="true"> into the same
+   frosted-glass dropdown design/animation used by the Lesson selector,
+   while keeping the original <select> fully working (value, disabled,
+   change event) so no other code has to change.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+function enhanceGlassSelect(selectEl) {
+    if (!selectEl || selectEl.dataset.glassEnhanced) return;
+    selectEl.dataset.glassEnhanced = "true";
+    selectEl.classList.add("glass-select-native");
+
+    const wrap = document.createElement("div");
+    wrap.className = "glass-dropdown settings-dropdown";
+    wrap.tabIndex = 0;
+    wrap.setAttribute("role", "listbox");
+    wrap.setAttribute("aria-label", selectEl.getAttribute("aria-label") || "");
+    wrap.setAttribute("aria-expanded", "false");
+    if (selectEl.getAttribute("style")) wrap.setAttribute("style", selectEl.getAttribute("style"));
+
+    const selectedDiv = document.createElement("div");
+    selectedDiv.className = "dropdown-selected";
+
+    const optionsDiv = document.createElement("div");
+    optionsDiv.className = "dropdown-options glass-options-portal";
+    optionsDiv.setAttribute("role", "listbox");
+
+    Array.from(selectEl.options).forEach(opt => {
+        const o = document.createElement("div");
+        o.className = "dropdown-option";
+        o.setAttribute("role", "option");
+        o.tabIndex = 0;
+        o.textContent = opt.textContent;
+        o.dataset.value = opt.value;
+        o.addEventListener("click", e => {
+            e.stopPropagation();
+            selectEl.value = opt.value;
+            selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+            closeDropdown();
+        });
+        optionsDiv.appendChild(o);
+    });
+
+    wrap.appendChild(selectedDiv);
+    wrap.appendChild(optionsDiv);
+    selectEl.insertAdjacentElement("afterend", wrap);
+
+    function syncLabel() {
+        const cur = selectEl.options[selectEl.selectedIndex];
+        selectedDiv.textContent = cur ? cur.textContent : "";
+        optionsDiv.querySelectorAll(".dropdown-option").forEach(o => {
+            o.classList.toggle("dropdown-option-active", o.dataset.value === selectEl.value);
+        });
+    }
+    syncLabel();
+    selectEl._glassSync = syncLabel;
+    selectEl.addEventListener("change", syncLabel);
+
+    function refreshDisabled() {
+        wrap.classList.toggle("dropdown-disabled", !!selectEl.disabled);
+    }
+    refreshDisabled();
+    new MutationObserver(refreshDisabled).observe(selectEl, { attributes: true, attributeFilter: ["disabled"] });
+
+    const scrollHandler = (e) => {
+        if (optionsDiv.contains(e.target)) return;
+        closeDropdown();
+    };
+    const resizeHandler = () => closeDropdown();
+
+    function closeDropdown() {
+        if (!wrap.classList.contains("open")) return;
+        wrap.classList.remove("open");
+        optionsDiv.classList.remove("portal-open");
+        wrap.setAttribute("aria-expanded", "false");
+        window.removeEventListener("scroll", scrollHandler, true);
+        window.removeEventListener("resize", resizeHandler);
+        
+        setTimeout(() => {
+            if (!wrap.classList.contains("open") && optionsDiv.parentNode === document.body) {
+                wrap.appendChild(optionsDiv);
+            }
+        }, 250);
+    }
+
+    wrap.addEventListener("click", e => {
+        e.stopPropagation();
+        if (selectEl.disabled) return;
+        const willOpen = !wrap.classList.contains("open");
+        
+        if (willOpen) {
+            document.querySelectorAll(".glass-dropdown.open").forEach(el => {
+                if (el !== wrap) el.click();
+            });
+
+            const r = wrap.getBoundingClientRect();
+            optionsDiv.style.position = "fixed";
+            optionsDiv.style.right = "auto";
+            optionsDiv.style.top = (r.bottom + 8) + "px";
+            optionsDiv.style.left = r.left + "px";
+            optionsDiv.style.width = r.width + "px";
+            optionsDiv.style.zIndex = "99999";
+            
+            document.body.appendChild(optionsDiv);
+            
+            window.addEventListener("scroll", scrollHandler, true);
+            window.addEventListener("resize", resizeHandler, { passive: true });
+        }
+        wrap.classList.toggle("open", willOpen);
+        optionsDiv.classList.toggle("portal-open", willOpen);
+        wrap.setAttribute("aria-expanded", String(willOpen));
+    });
+    
+    wrap.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); wrap.click(); }
+    });
+    
+    document.addEventListener("click", e => {
+        if (!wrap.contains(e.target) && !optionsDiv.contains(e.target)) closeDropdown();
+    });
+}
+
+function initGlassSelects(root = document) {
+    root.querySelectorAll("select[data-glass]").forEach(enhanceGlassSelect);
+}
+window.initGlassSelects = initGlassSelects;
+window.refreshGlassSelect = function (id) {
+    const el = document.getElementById(id);
+    if (el && typeof el._glassSync === "function") el._glassSync();
+};
+document.addEventListener("DOMContentLoaded", () => initGlassSelects());
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   TOASTS & ACHIEVEMENTS
+   ═══════════════════════════════════════════════════════════════════════════════ */
+function showToast(msg, type = "success") {
+    const container = $("toastContainer");
+    if (!container) return;
+    const t = document.createElement("div");
+    t.className = `toast toast-${type}`;
+    t.textContent = msg; // textContent only — never innerHTML for toasts.
+    container.appendChild(t);
     setTimeout(() => t.remove(), 3000);
 }
+window.showToast = showToast;
+
 function checkAchievement(id, title) {
     if (!userProfile.achievements.includes(id)) {
-        userProfile.achievements.push(id); store.set('jlpt_profile', userProfile);
-        showToast(`🏆 Achievement Unlocked: ${title}!`, 'success');
+        userProfile.achievements.push(id);
+        store.set("jlpt_profile", userProfile);
+        showToast(`🏆 Achievement Unlocked: ${title}!`, "success");
         updateDashboard();
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// LOAD LESSON 
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   LOAD LESSON
+   ═══════════════════════════════════════════════════════════════════════════════ */
 async function loadLesson(num) {
     try {
         const res = await fetch(`data/lesson${num}.json`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const raw = await res.json();
-        let data = Array.isArray(raw) ? raw : raw.vocabulary || raw.words || raw.items;
+        const data = Array.isArray(raw) ? raw : (raw.vocabulary || raw.words || raw.items || []);
+        if (!Array.isArray(data)) throw new Error("Malformed lesson data");
+
         vocabulary = data.map(item => ({
             kanji: item.kanji || item.word || "",
             hiragana: item.hiragana || item.reading || "",
             meaning: item.meaning || item.english || "",
-            memory: item.memory || "", example: item.example || "",
-            section: item.section || "Vocabulary", emoji: item.emoji || "📘"
+            memory: item.memory || "",
+            example: item.example || "",
+            section: item.section || "Vocabulary",
+            emoji: item.emoji || "📘"
         })).filter(w => w.kanji || w.hiragana || w.meaning);
-        
+
         filteredVocabulary = [...vocabulary];
-        store.set('jlpt_lastLesson', num);
-        $('lessonSelected').textContent = `Lesson ${num}`;
-        
+        window.vocabulary = vocabulary;
+        window.filteredVocabulary = filteredVocabulary;
+
+        store.set("jlpt_lastLesson", num);
+        safeText($("lessonSelected"), `Lesson ${num}`);
+
         vocabulary.forEach(v => {
-            if (!srsData[v.kanji]) srsData[v.kanji] = { interval: 0, repetition: 0, eFactor: 2.5, dueDate: Date.now() };
+            const key = wordKey(v);
+            if (key && !srsData[key]) srsData[key] = { interval: 0, repetition: 0, eFactor: 2.5, dueDate: Date.now() };
         });
-        store.set('jlpt_srs', srsData);
+        store.set("jlpt_srs", srsData);
 
         updateDashboard();
-        if(currentView === 'vocabView') renderVocabulary();
-        if(currentView === 'reviewView') startReview();
-        
+        if (currentView === "vocabView") renderVocabulary();
+        if (currentView === "reviewView") startReview();
+
     } catch (err) {
-        showToast(`Lesson ${num} is not available yet.`, 'error');
-        // Rollback the UI to the last known working lesson
-        const lastWorking = store.get('jlpt_lastLesson', 1);
-        $('lessonSelected').textContent = `Lesson ${lastWorking}`;
+        console.warn(`Lesson ${num} load failed:`, err);
+        showToast(`Lesson ${num} is not available yet.`, "error");
+        const lastWorking = store.get("jlpt_lastLesson", 1);
+        safeText($("lessonSelected"), `Lesson ${lastWorking}`);
     }
 }
+window.loadLesson = loadLesson;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// DASHBOARD 
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DASHBOARD
+   ═══════════════════════════════════════════════════════════════════════════════ */
 function updateDashboard() {
     safeText($("streakStat"), `🔥 ${userProfile.streak} Days`);
     safeText($("totalLearnedStat"), `${userProfile.learned.length} Words`);
-    
+
     const now = Date.now();
-    const dueCount = Object.values(srsData).filter(v => v.dueDate <= now).length;
+    const dueCount = Object.values(srsData).filter(v => v && v.dueDate <= now).length;
     safeText($("dueReviewStat"), `${dueCount} Due`);
-    
+
     const pct = Math.min(100, Math.round((userProfile.wordsStudiedToday / userProfile.dailyGoal) * 100));
     safeText($("dailyGoalStat"), `${userProfile.wordsStudiedToday} / ${userProfile.dailyGoal}`);
-    if($("goalProgressFill")) $("goalProgressFill").style.width = `${pct}%`;
+    if ($("goalProgressFill")) $("goalProgressFill").style.width = `${pct}%`;
 
-    const lessonLearned = vocabulary.filter(item => userProfile.learned.includes(item.kanji)).length;
+    const lessonLearned = vocabulary.filter(item => userProfile.learned.includes(wordKey(item))).length;
     const lPct = vocabulary.length ? Math.round((lessonLearned / vocabulary.length) * 100) : 0;
-    if($("progressFill")) $("progressFill").style.width = lPct + "%";
-    safeText($("lessonTitle"), `Lesson ${store.get('jlpt_lastLesson', 1)} · ${lessonLearned}/${vocabulary.length} learned`);
+    if ($("progressFill")) $("progressFill").style.width = lPct + "%";
+    safeText($("lessonTitle"), `Lesson ${store.get("jlpt_lastLesson", 1)} · ${lessonLearned}/${vocabulary.length} learned`);
 
     const achList = $("achievementsList");
-    if(achList) {
-        const milestones = [{id:'first_10', t:'10 Words'}, {id:'first_100', t:'100 Words Master'}, {id:'streak_7', t:'7 Day Streak'}];
-        achList.innerHTML = milestones.map(m => 
-            `<div class="achievement-badge ${userProfile.achievements.includes(m.id)?'':'locked'}">${userProfile.achievements.includes(m.id)?'🏅':'🔒'} ${m.t}</div>`
-        ).join('');
+    if (achList) {
+        const milestones = [
+            { id: "first_10", t: "10 Words" },
+            { id: "first_100", t: "100 Words Master" },
+            { id: "streak_7", t: "7 Day Streak" }
+        ];
+        achList.innerHTML = milestones.map(m => {
+            const unlocked = userProfile.achievements.includes(m.id);
+            return `<div class="achievement-badge ${unlocked ? "" : "locked"}">${unlocked ? "🏅" : "🔒"} ${sanitizeHTML(m.t)}</div>`;
+        }).join("");
     }
+
+    if (typeof updateXPBar === "function") updateXPBar();
+    if (typeof updateHeatmap === "function") updateHeatmap();
+    if (typeof updateReadiness === "function") updateReadiness();
 }
+window.updateDashboard = updateDashboard;
 
 function recordStudy() {
-    userProfile.wordsStudiedToday++; store.set('jlpt_profile', userProfile);
+    userProfile.wordsStudiedToday++;
+    store.set("jlpt_profile", userProfile);
     updateDashboard();
-    if (userProfile.wordsStudiedToday === 10) checkAchievement('first_10', 'First 10 Words');
-    if (userProfile.learned.length >= 100) checkAchievement('first_100', '100 Words Master');
-    if (userProfile.streak >= 7) checkAchievement('streak_7', '7 Day Streak');
+    if (userProfile.wordsStudiedToday === 10) checkAchievement("first_10", "First 10 Words");
+    if (userProfile.learned.length >= 100) checkAchievement("first_100", "100 Words Master");
+    if (userProfile.streak >= 7) checkAchievement("streak_7", "7 Day Streak");
 }
+window.recordStudy = recordStudy;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// UNIFIED REVIEW ENGINE (Cards + SRS)
-// ═══════════════════════════════════════════════════════════════════════════════
-function startReview() {
-    if (!vocabulary.length) return;
+/* ═══════════════════════════════════════════════════════════════════════════════
+   UNIFIED REVIEW ENGINE (Flashcards + SRS)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+function startReview(customList) {
+    const list = (Array.isArray(customList) && customList.length) ? customList : vocabulary;
+    if (!list.length) return;
+    vocabulary = list;
+    window.vocabulary = vocabulary;
     reviewIndex = 0;
+    window.reviewIndex = reviewIndex;
     showReviewCard();
 }
+window.startReview = startReview;
 
 function showReviewCard() {
-    const w = vocabulary[reviewIndex]; 
-    if(!w) return;
+    const w = vocabulary[reviewIndex];
+    if (!w) return;
 
-    // Reset UI State for the new card
-    $("srsFlashcard").classList.remove("flipped");
+    const card = $("srsFlashcard");
+    card?.classList.remove("flipped");
+    card?.setAttribute("aria-pressed", "false");
+    const front = $("srsFront");
+    const back  = $("srsBack");
+    if (front) front.setAttribute("aria-hidden", "false");
+    if (back)  back.setAttribute("aria-hidden",  "true");
     safeText($("srsCounter"), `Card ${reviewIndex + 1} / ${vocabulary.length}`);
-    
-    // Inject Content
-    
-    $("srsFront").innerHTML = `<div style="font-size:40px">${sanitizeHTML(w.emoji)}</div><div class="kanji" style="margin-top:16px">${sanitizeHTML(w.kanji)}</div>`;
-    
-    // Safely encode variables for the inline onclick handler
-    const safeHiraganaForAudio = sanitizeHTML(w.hiragana).replace(/'/g, "\\'");
 
-    $("srsBack").innerHTML = `
-        <h2 style="color:var(--accent3)">${sanitizeHTML(w.hiragana)}</h2>
-        <button class="fc-speak" onclick="event.stopPropagation(); speakJapanese('${safeHiraganaForAudio}')" title="Play Audio">🔊</button>
-        <div class="meaning" style="font-size:20px;margin-top:12px;">${sanitizeHTML(w.meaning)}</div>
-        ${w.memory ? `<div class="memory">${sanitizeHTML(w.memory)}</div>` : ''}
-    `;
+    if (front) {
+        front.innerHTML = `<div class="flash-accent-line"></div><div style="font-size:40px">${sanitizeHTML(w.emoji)}</div><div class="kanji" style="margin-top:16px">${sanitizeHTML(w.kanji || w.hiragana)}</div>`;
+    }
 
-    // Manage Navigation Button States
-    if($('reviewPrevBtn')) $('reviewPrevBtn').disabled = reviewIndex === 0;
-    if($('reviewNextBtn')) $('reviewNextBtn').disabled = reviewIndex === vocabulary.length - 1;
+    if (back) {
+        back.innerHTML = `
+            <div class="flash-accent-line"></div>
+            <h2 style="color:var(--accent3)">${sanitizeHTML(w.hiragana)}</h2>
+            <button class="fc-speak" type="button" data-speak-text="${sanitizeAttr(w.hiragana || w.kanji)}" title="Play Audio">🔊</button>
+            <div class="meaning" style="font-size:20px;margin-top:12px;">${sanitizeHTML(w.meaning)}</div>
+            ${w.memory ? `<div class="memory">${sanitizeHTML(w.memory)}</div>` : ""}
+        `;
+        // Bind audio button without inline onclick (CSP-friendly, no string-escaping fragility).
+        const speakBtn = back.querySelector(".fc-speak");
+        if (speakBtn) {
+            speakBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                speakJapanese(speakBtn.dataset.speakText);
+            });
+        }
+    }
+
+    if ($("reviewPrevBtn")) $("reviewPrevBtn").disabled = reviewIndex === 0;
+    if ($("reviewNextBtn")) $("reviewNextBtn").disabled = reviewIndex === vocabulary.length - 1;
 }
+window.showReviewCard = showReviewCard;
 
-// ✨ NEW: Animation Wrapper for Smooth Transitions
 let isAnimatingCard = false;
 function transitionCard(direction, callback) {
-    if (isAnimatingCard) return; // Prevent spam-clicking breaking the UI
+    if (isAnimatingCard) return;
     isAnimatingCard = true;
-    
+
     const card = $("srsFlashcard");
+    if (!card) { isAnimatingCard = false; return; }
+
     const outClass = direction === "left" ? "slide-out-left" : "slide-out-right";
-    const inClass  = direction === "left" ? "slide-in-left"  : "slide-in-right";
-    
-    // Slide Out
+    const inClass = direction === "left" ? "slide-in-left" : "slide-in-right";
+
     card.classList.add(outClass);
-    
+
     setTimeout(() => {
         card.classList.remove(outClass);
-        callback(); // Swap the text content while the card is invisible
-        
-        // Force the browser to register the swap before sliding back in
+        try {
+            callback();
+        } catch (e) {
+            isAnimatingCard = false;
+            console.warn("transitionCard callback error:", e);
+            return;
+        }
         void card.offsetWidth;
-        
-        // Slide In
         card.classList.add(inClass);
-        
         setTimeout(() => {
             card.classList.remove(inClass);
-            isAnimatingCard = false; // Re-enable clicks
-        }, 300); // 300ms matches the CSS ease-spring duration
-    }, 220); // 220ms matches the CSS fade-out duration
+            isAnimatingCard = false;
+        }, 300);
+    }, 220);
 }
 
-// Flip Card Action
 $("srsFlashcard")?.addEventListener("click", () => {
-    if (isAnimatingCard) return; // Don't flip while it is sliding!
+    if (isAnimatingCard) return;
     const card = $("srsFlashcard");
     card.classList.toggle("flipped");
     haptic();
     if (card.classList.contains("flipped") && userProfile.autoPlay) {
         const w = vocabulary[reviewIndex];
-        if (w) speakJapanese(w.hiragana);
+        if (w) speakJapanese(w.hiragana || w.kanji);
     }
 });
 
 $("srsFlashcard")?.addEventListener("keydown", e => {
-    
-    if (e.key === "ArrowLeft") {
-        $("reviewPrevBtn")?.click();
-    }
-
-    if (e.key === "ArrowRight") {
-        $("reviewNextBtn")?.click();
-    }
-
-    if (
-        e.key === "Enter" ||
-        e.key === " "
-    ) {
+    if (e.key === "ArrowLeft") { $("reviewPrevBtn")?.click(); }
+    if (e.key === "ArrowRight") { $("reviewNextBtn")?.click(); }
+    if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         $("srsFlashcard").click();
     }
 });
 
-
-$("srsFlashcard")?.addEventListener("touchstart", e => {
-    touchStartX = e.changedTouches[0].screenX;
-}, { passive: true });
-
-$("srsFlashcard")?.addEventListener("touchend", e => {
-    touchEndX = e.changedTouches[0].screenX;
-
-    const delta = touchEndX - touchStartX;
-
-    if (Math.abs(delta) < 60) return;
-
-    if (delta < 0 && reviewIndex < vocabulary.length - 1) {
-
-        transitionCard("left", () => {
-            reviewIndex++;
-            showReviewCard();
-        });
-
-    } else if (delta > 0 && reviewIndex > 0) {
-
+$("reviewPrevBtn")?.addEventListener("click", () => {
+    if (reviewIndex > 0) {
         transitionCard("right", () => {
             reviewIndex--;
+            window.reviewIndex = reviewIndex;
             showReviewCard();
         });
     }
-}, { passive: true });
-
-// Manual Navigation Actions (Now animated!)
-$("reviewPrevBtn")?.addEventListener("click", () => { 
-    if(reviewIndex > 0) { 
-        transitionCard("right", () => {
-            reviewIndex--; 
-            showReviewCard(); 
-        });
-    }
 });
 
-$("reviewNextBtn")?.addEventListener("click", () => { 
-    if(reviewIndex < vocabulary.length - 1) { 
+$("reviewNextBtn")?.addEventListener("click", () => {
+    if (reviewIndex < vocabulary.length - 1) {
         transitionCard("left", () => {
-            reviewIndex++; 
-            showReviewCard(); 
+            reviewIndex++;
+            window.reviewIndex = reviewIndex;
+            showReviewCard();
         });
-    }
-});
-
-let touchStartX = 0;
-let touchEndX = 0;
-
-const card = $("srsFlashcard");
-
-card?.addEventListener("touchstart", e => {
-    touchStartX = e.changedTouches[0].screenX;
-});
-
-card?.addEventListener("touchend", e => {
-
-    touchEndX = e.changedTouches[0].screenX;
-
-    const diff = touchEndX - touchStartX;
-
-    if (Math.abs(diff) < 60) return;
-
-    if (diff < 0) {
-        $("reviewNextBtn")?.click();
-    } else {
-        $("reviewPrevBtn")?.click();
     }
 });
 
 function speakJapanese(txt) {
-    if (!window.speechSynthesis) return;
-
+    if (!window.speechSynthesis || !txt) return;
     speechSynthesis.cancel();
-
     const u = new SpeechSynthesisUtterance(txt);
-
     u.lang = "ja-JP";
     u.rate = 0.95;
-
-    if (japaneseVoice) {
-        u.voice = japaneseVoice;
-    }
-
+    if (japaneseVoice) u.voice = japaneseVoice;
     speechSynthesis.speak(u);
 }
+window.speakJapanese = speakJapanese;
 
-// SRS Grading Actions
-[1,2,3,4].forEach(grade => {
+[1, 2, 3, 4].forEach(grade => {
     $(`srsBtn${grade}`)?.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (isAnimatingCard) return; // Prevent grading mid-slide
+        if (isAnimatingCard) return;
         processSRSGrade(grade);
     });
 });
 
 function processSRSGrade(grade) {
-    if(!vocabulary.length) return;
+    if (!vocabulary.length) return;
     const word = vocabulary[reviewIndex];
-    let { interval, repetition, eFactor } = srsData[word.kanji];
+    if (!word) return;
+    const key = wordKey(word);
+    if (!key) return;
 
-    // Mathematical Spaced Repetition Updates
-    if (grade >= 3) { 
-        if (repetition === 0) interval = 1;
-        else if (repetition === 1) interval = 6;
-        else interval = Math.round(interval * eFactor);
+    let { interval, repetition, eFactor } = srsData[key] || { interval: 0, repetition: 0, eFactor: 2.5 };
+
+    let _addedToWeakThisGrade = false;
+
+    if (grade === 1) {
+        // Again — you didn't know it. Full reset, due again today, marked weak.
+        repetition = 0;
+        interval = 0;
+        eFactor = eFactor - 0.3;
+        if (!userProfile.weak.includes(key)) {
+            userProfile.weak.push(key);
+            _addedToWeakThisGrade = true;
+        }
+    } else if (grade === 2) {
+        // Hard — you got it, but with effort. Short delay, does NOT reset
+        // progress and does NOT get dumped into Weak Words.
+        interval = 1;
+        repetition = Math.max(1, repetition);
+        eFactor = eFactor - 0.15;
+    } else if (grade === 3) {
+        // Good — first time: 3 days. After that, grows normally.
         repetition++;
-    } else { 
-        repetition = 0; interval = 1;
-        if (!userProfile.weak.includes(word.kanji)) userProfile.weak.push(word.kanji);
+        interval = repetition === 1 ? 3 : Math.round(interval * eFactor);
+        eFactor = eFactor + 0.05;
+    } else {
+        // Easy (grade 4) — first time: 7 days. After that, grows faster
+        // than "Good" and the ease factor actually increases.
+        repetition++;
+        interval = repetition === 1 ? 7 : Math.round(interval * eFactor * 1.3);
+        eFactor = eFactor + 0.15;
     }
-    
-    eFactor = eFactor + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02));
+
     if (eFactor < 1.3) eFactor = 1.3;
+    if (eFactor > 3.0) eFactor = 3.0;
 
-    // Save
-    srsData[word.kanji] = { interval, repetition, eFactor, dueDate: Date.now() + interval * 86400000 };
-    store.set('jlpt_srs', srsData);
-    
-    if (grade >= 3 && !userProfile.learned.includes(word.kanji)) {
-        userProfile.learned.push(word.kanji);
+    srsData[key] = { interval, repetition, eFactor, dueDate: Date.now() + interval * 86400000 };
+    store.set("jlpt_srs", srsData);
+
+    if (grade >= 3 && !userProfile.learned.includes(key)) {
+        userProfile.learned.push(key);
     }
-    
-    recordStudy();
+    store.set("jlpt_profile", userProfile);
 
-    // Auto-Advance to the next card after grading (Now animated!)
+    recordStudy();
+    window._lastGradedWord = word;
+    window._lastGradedAddedWeak = _addedToWeakThisGrade;
+
     if (reviewIndex < vocabulary.length - 1) {
         transitionCard("left", () => {
             reviewIndex++;
+            window.reviewIndex = reviewIndex;
             showReviewCard();
         });
     } else {
         showToast("Lesson review complete! 🎉", "success");
     }
 }
+window.processSRSGrade = processSRSGrade;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// UI & VIEW ROUTING
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   UI & VIEW ROUTING
+   ═══════════════════════════════════════════════════════════════════════════════ */
 function syncNavPill(activeId) {
-    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active-pill'));
-    const btn = $(activeId + 'Btn');
-    if (btn) btn.classList.add('active-pill');
+    document.querySelectorAll(".pill").forEach(p => p.classList.remove("active-pill"));
+    const btn = $(activeId + "Btn");
+    if (btn) btn.classList.add("active-pill");
 }
+window.syncNavPill = syncNavPill;
 
 function showView(id) {
-    document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
-    const v = $(id); 
-    if(v) {
-        v.classList.remove('hidden');
-        v.style.animation = 'none'; void v.offsetWidth; v.style.animation = 'viewFadeIn 0.3s ease both';
-    }
-    currentView = id;
-    if ($("mobilePopover")) { $("mobilePopover").setAttribute("aria-hidden", "true"); $("hamburgerBtn").setAttribute("aria-expanded", "false"); }
-}
+    const currentlyVisible = document.querySelector(".view-panel:not(.hidden)");
+    const target = $(id);
 
-['dashboard', 'vocab', 'review', 'quiz', 'settings'].forEach(v => {
-    $(`${v}Btn`)?.addEventListener('click', () => { showView(`${v}View`); handleViewLogic(v); });
-    $(`m${v.charAt(0).toUpperCase()+v.slice(1)}Btn`)?.addEventListener('click', () => { showView(`${v}View`); handleViewLogic(v); });
+    const finishSwitch = () => {
+        document.querySelectorAll(".view-panel").forEach(el => {
+            el.classList.add("hidden");
+            el.classList.remove("fading-out");
+        });
+        if (target) {
+            target.classList.remove("hidden");
+            target.style.animation = "none";
+            void target.offsetWidth;
+            target.style.animation = "viewFadeIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both";
+        }
+        currentView = id;
+        window.currentView = id;
+        if ($("mobilePopover")) {
+            $("mobilePopover").setAttribute("aria-hidden", "true");
+            $("hamburgerBtn")?.setAttribute("aria-expanded", "false");
+        }
+    };
+
+    if (currentlyVisible && currentlyVisible !== target) {
+        currentlyVisible.classList.add("fading-out");
+        setTimeout(finishSwitch, 170);
+    } else {
+        finishSwitch();
+    }
+}
+window.showView = showView;
+
+["dashboard", "vocab", "review", "quiz", "games"].forEach(v => {
+    $(`${v}Btn`)?.addEventListener("click", () => {
+        document.body.style.overflow = "";
+        if (typeof closeSettingsDrawer === "function") closeSettingsDrawer();
+        if (window._dailyChallengeWords && v !== "review") {
+            window._dailyChallengeWords = null;
+            loadLesson(store.get("jlpt_lastLesson", 1));
+        }
+        showView(`${v}View`);
+        handleViewLogic(v);
+    });
+    $(`m${v.charAt(0).toUpperCase() + v.slice(1)}Btn`)?.addEventListener("click", () => {
+        document.body.style.overflow = "";
+        if (typeof closeSettingsDrawer === "function") closeSettingsDrawer();
+        showView(`${v}View`);
+        handleViewLogic(v);
+    });
 });
+$("mThemeBtn")?.addEventListener("click", () => $("themeToggleBtn")?.click());
+$("settingsBtn")?.addEventListener("click", () => window.openSettingsDrawer?.());
+$("mSettingsBtn")?.addEventListener("click", () => window.openSettingsDrawer?.());
 
 function handleViewLogic(v) {
     syncNavPill(v);
-    if(v === 'dashboard') updateDashboard();
-    if(v === 'vocab') { filteredVocabulary = [...vocabulary]; $("searchBox").value=""; renderVocabulary(); }
-    if(v === 'review') startReview();
-    if(v === 'quiz') startNewQuiz(); // <--- Change this line
-    if(v === 'settings') { $("goalSelect").value = userProfile.dailyGoal; $("autoPlayAudio").checked = userProfile.autoPlay; }
+    if (v === "dashboard") updateDashboard();
+    if (v === "vocab") { filteredVocabulary = [...vocabulary]; window.filteredVocabulary = filteredVocabulary; if ($("searchBox")) $("searchBox").value = ""; renderVocabulary(); }
+    if (v === "review") startReview();
+    if (v === "quiz") startNewQuiz();
+    if (v === "games") { if (typeof renderGamesHub === "function") renderGamesHub(); }
 }
+window.handleViewLogic = handleViewLogic;
 
-$('favBtn')?.addEventListener('click', () => { showView('vocabView'); syncNavPill('vocab'); filteredVocabulary = vocabulary.filter(v => userProfile.favorites.includes(v.kanji)); renderVocabulary(); });
-$('weakBtn')?.addEventListener('click', () => { showView('vocabView'); syncNavPill('vocab'); filteredVocabulary = vocabulary.filter(v => userProfile.weak.includes(v.kanji)); renderVocabulary(); });
-
-// 📱 Mobile Hamburger Menu Toggle
-$('hamburgerBtn')?.addEventListener('click', (e) => {
-    e.stopPropagation(); // Stop the click from immediately bubbling to the document
-    const btn = $('hamburgerBtn');
-    const menu = $('mobilePopover');
-    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-    
-    btn.setAttribute('aria-expanded', !isExpanded);
-    menu.setAttribute('aria-hidden', isExpanded);
+$("favBtn")?.addEventListener("click", () => {
+    showView("vocabView"); syncNavPill("vocab");
+    filteredVocabulary = vocabulary.filter(v => userProfile.favorites.includes(wordKey(v)));
+    window.filteredVocabulary = filteredVocabulary;
+    renderVocabulary();
+});
+$("weakBtn")?.addEventListener("click", () => {
+    showView("vocabView"); syncNavPill("vocab");
+    filteredVocabulary = vocabulary.filter(v => userProfile.weak.includes(wordKey(v)));
+    window.filteredVocabulary = filteredVocabulary;
+    renderVocabulary();
 });
 
-// Close menu if user taps outside of it
-document.addEventListener('click', (e) => {
-    const btn = $('hamburgerBtn');
-    const menu = $('mobilePopover');
-    
-    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target) && btn.getAttribute('aria-expanded') === 'true') {
-        btn.setAttribute('aria-expanded', 'false');
-        menu.setAttribute('aria-hidden', 'true');
+$("hamburgerBtn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const btn = $("hamburgerBtn");
+    const menu = $("mobilePopover");
+    const isExpanded = btn.getAttribute("aria-expanded") === "true";
+    btn.setAttribute("aria-expanded", String(!isExpanded));
+    menu.setAttribute("aria-hidden", String(isExpanded));
+});
+
+document.addEventListener("click", (e) => {
+    const btn = $("hamburgerBtn");
+    const menu = $("mobilePopover");
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target) && btn.getAttribute("aria-expanded") === "true") {
+        btn.setAttribute("aria-expanded", "false");
+        menu.setAttribute("aria-hidden", "true");
     }
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// VOCABULARY RENDERING (With Section Grouping)
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   VOCABULARY RENDERING (grouped by section)
+   ═══════════════════════════════════════════════════════════════════════════════ */
 function renderVocabulary() {
     const frag = document.createDocumentFragment();
     const cont = $("vocabularyContainer");
-    if(!cont) return;
-    
-    if (!filteredVocabulary.length) { 
-        cont.innerHTML = `<div class="dash-card text-center" style="grid-column:1/-1;"><h3>No words found</h3></div>`; 
-        return; 
+    if (!cont) return;
+
+    if (!filteredVocabulary.length) {
+        cont.innerHTML = `<div class="dash-card text-center" style="grid-column:1/-1;"><h3>No words found</h3></div>`;
+        return;
     }
 
-    // Group the vocabulary by 'section'
     const groupedVocab = {};
     filteredVocabulary.forEach(item => {
         const sectionName = item.section || "Vocabulary";
@@ -609,47 +951,56 @@ function renderVocabulary() {
         groupedVocab[sectionName].push(item);
     });
 
-    // Iterate through each group and render its header and cards
     Object.keys(groupedVocab).forEach(section => {
-        // 1. Create the Section Header
-        const sectionHeader = document.createElement('div');
+        const sectionHeader = document.createElement("div");
         sectionHeader.className = "vocab-section-header";
-        sectionHeader.innerHTML = `<span>${section}</span>`;
+        sectionHeader.innerHTML = `<span>${sanitizeHTML(section)}</span>`;
         frag.appendChild(sectionHeader);
 
-        // 2. Render the Cards for this Section
         groupedVocab[section].forEach(item => {
-            const isLearned = userProfile.learned.includes(item.kanji);
-            const isFav = userProfile.favorites.includes(item.kanji);
-            
-            const c = document.createElement('div'); 
-            c.className = `card spatial-card ${isLearned ? 'card-learned' : ''}`;
-            
+            const key = wordKey(item);
+            const isLearned = userProfile.learned.includes(key);
+            const isFav = userProfile.favorites.includes(key);
+
+            const c = document.createElement("div");
+            c.className = `card spatial-card ${isLearned ? "card-learned" : ""}`;
+            c.dataset.wordKey  = key;
+            c.dataset.kanji    = item.kanji    || "";
+            c.dataset.hiragana = item.hiragana || "";
+            c.dataset.meaning  = item.meaning  || "";
+            c.dataset.memory   = item.memory   || "";
+            c.dataset.example  = item.example  || "";
+            c.dataset.emoji    = item.emoji    || "";
+
             c.innerHTML = `
                 <div class="card-top">
                     <span class="emoji">${sanitizeHTML(item.emoji)}</span>
-                    ${isLearned ? `<span class="learned-badge" title="Learned">✅</span>` : ''}
+                    ${isLearned ? `<span class="learned-badge" title="Learned">✅</span>` : ""}
                 </div>
                 <div class="card-content">
-                    <div class="kanji">${sanitizeHTML(item.kanji)}</div>
+                    <div class="kanji">${sanitizeHTML(item.kanji || item.hiragana)}</div>
                     <div class="hiragana">${sanitizeHTML(item.hiragana)}</div>
                     <div class="meaning">${sanitizeHTML(item.meaning)}</div>
-                    ${item.memory ? `<div class="memory">${sanitizeHTML(item.memory)}</div>` : ''}
+                    ${item.memory ? `<div class="memory">${sanitizeHTML(item.memory)}</div>` : ""}
                 </div>
                 <div class="card-actions">
-                    <button class="action-btn speak-btn" title="Listen">🔊</button>
-                    <button class="action-btn favorite-btn ${isFav ? 'favorited' : ''}" title="Favorite">${isFav ? '⭐' : '☆'}</button>
+                    <button class="action-btn speak-btn" type="button" title="Listen">🔊</button>
+                    <button class="action-btn favorite-btn ${isFav ? "favorited" : ""}" type="button" title="Favorite">${isFav ? "⭐" : "☆"}</button>
                 </div>`;
-                
-            c.querySelector('.speak-btn').onclick = (e) => { e.stopPropagation(); speakJapanese(item.hiragana); };
-            c.querySelector('.favorite-btn').onclick = (e) => { 
-                e.stopPropagation(); 
-                const index = userProfile.favorites.indexOf(item.kanji);
-                if(index > -1) userProfile.favorites.splice(index, 1); 
-                else userProfile.favorites.push(item.kanji);
-                store.set('jlpt_profile', userProfile); 
-                renderVocabulary(); updateDashboard();
-            };
+
+            c.querySelector(".speak-btn").addEventListener("click", (e) => {
+                e.stopPropagation();
+                speakJapanese(item.hiragana || item.kanji);
+            });
+            c.querySelector(".favorite-btn").addEventListener("click", (e) => {
+                e.stopPropagation();
+                const idx = userProfile.favorites.indexOf(key);
+                if (idx > -1) userProfile.favorites.splice(idx, 1);
+                else userProfile.favorites.push(key);
+                store.set("jlpt_profile", userProfile);
+                renderVocabulary();
+                updateDashboard();
+            });
             frag.appendChild(c);
         });
     });
@@ -657,33 +1008,56 @@ function renderVocabulary() {
     cont.replaceChildren(frag);
 
     requestAnimationFrame(() => {
-        document.querySelectorAll('.card:not(.revealed)').forEach(c => revealObserver.observe(c));
+        document.querySelectorAll(".card:not(.revealed)").forEach(c => revealObserver.observe(c));
     });
 }
+window.renderVocabulary = renderVocabulary;
 
 let searchDebounce;
 $("searchBox")?.addEventListener("input", e => {
     clearTimeout(searchDebounce);
+    const q = e.target.value.trim();
+
+    if (!q) {
+        filteredVocabulary = [...vocabulary];
+        window.filteredVocabulary = filteredVocabulary;
+        if (currentView === "vocabView") renderVocabulary();
+        if (typeof closeJishoDropdown === "function") closeJishoDropdown();
+        return;
+    }
+
     searchDebounce = setTimeout(() => {
-        if(currentView !== 'vocabView') showView('vocabView');
-        const q = e.target.value.trim().toLowerCase();
-        const rq = normalizeRomaji(q); 
-        filteredVocabulary = vocabulary.filter(i => 
-            (i.kanji||"").includes(q) || (i.hiragana||"").includes(q) || (i.meaning||"").toLowerCase().includes(q) || (i.hiragana||"").includes(rq)
+        const ql = q.toLowerCase();
+        const rq = normalizeRomaji(ql);
+
+        const localMatches = vocabulary.filter(i =>
+            (i.kanji || "").includes(q) ||
+            (i.hiragana || "").includes(q) ||
+            (i.meaning || "").toLowerCase().includes(ql) ||
+            (i.hiragana || "").includes(rq)
         );
-        renderVocabulary();
-    }, 200);
+
+        if (localMatches.length > 0) {
+            if (currentView !== "vocabView") showView("vocabView");
+            filteredVocabulary = localMatches;
+            window.filteredVocabulary = filteredVocabulary;
+            renderVocabulary();
+            if (typeof closeJishoDropdown === "function") closeJishoDropdown();
+        } else if (typeof fetchJisho === "function") {
+            fetchJisho(q);
+        }
+    }, 280);
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// QUIZ MODE (Fully Restored Logic)
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   QUIZ MODE
+   ═══════════════════════════════════════════════════════════════════════════════ */
 let quizStreak = 0;
 let quizBestStreak = 0;
-let quizHistory = []; // Tracks right/wrong for the final summary
+let quizHistory = [];
 
 $("modeKanjiBtn")?.addEventListener("click", () => {
-    if(quizMode === "kanjiToMeaning") return;
+    if (quizMode === "kanjiToMeaning") return;
     quizMode = "kanjiToMeaning";
     $("modeKanjiBtn").classList.add("active-mode");
     $("modeMeaningBtn").classList.remove("active-mode");
@@ -691,7 +1065,7 @@ $("modeKanjiBtn")?.addEventListener("click", () => {
 });
 
 $("modeMeaningBtn")?.addEventListener("click", () => {
-    if(quizMode === "meaningToKanji") return;
+    if (quizMode === "meaningToKanji") return;
     quizMode = "meaningToKanji";
     $("modeMeaningBtn").classList.add("active-mode");
     $("modeKanjiBtn").classList.remove("active-mode");
@@ -699,272 +1073,334 @@ $("modeMeaningBtn")?.addEventListener("click", () => {
 });
 
 function startNewQuiz() {
-    qNum = 0; 
-    score = 0; 
+    if (!vocabulary.length) { showToast("Load a lesson first!", "error"); return; }
+    qNum = 0;
+    score = 0;
     quizStreak = 0;
     quizHistory = [];
     quizQueue = shuffleArray([...vocabulary]);
-    
-    // Clear out any old summary card
+
     const resBox = $("quizResult");
-    if(resBox) resBox.innerHTML = "";
-    
-    // Ensure the question area is visible
-    $("quizQuestion").style.display = "block";
-    ["optionA","optionB","optionC","optionD"].forEach(id => $(id).style.display = "block");
-    
+    if (resBox) resBox.innerHTML = "";
+
+    if ($("quizQuestion")) $("quizQuestion").style.display = "block";
+    ["optionA", "optionB", "optionC", "optionD"].forEach(id => { if ($(id)) $(id).style.display = "block"; });
+
     updateQuizUI();
     nextQuizQuestion();
 }
+window.startNewQuiz = startNewQuiz;
 
 function updateQuizUI() {
     safeText($("scoreDisplay"), `⭐ Score: ${score}`);
     safeText($("streakDisplay"), `🔥 Streak: ${quizStreak}`);
     safeText($("bestStreakDisplay"), `🏆 Best: ${quizBestStreak}`);
-    safeText($("quizCounter"), `Question ${qNum + 1} / 20`);
-    
+    safeText($("quizCounter"), `Question ${Math.min(qNum + 1, 20)} / 20`);
+
     const fill = $("quizProgressFill");
-    if (fill) fill.style.width = `${((qNum) / 20) * 100}%`;
+    if (fill) fill.style.width = `${(qNum / 20) * 100}%`;
 }
 
 function nextQuizQuestion() {
-    if(vocabulary.length < 4) {
+    if (vocabulary.length < 4) {
         showToast("Not enough words in this lesson to quiz!", "error");
         return;
     }
-    
     if (qNum >= 20 || quizQueue.length === 0) {
         endQuiz();
         return;
     }
 
-    updateQuizUI(); 
+    updateQuizUI();
 
-    const w = quizQueue.pop(); 
-    if(!w) return;
-    
+    const w = quizQueue.pop();
+    if (!w) return;
+    window._currentQuizWord = w;
+
     const isRev = quizMode === "meaningToKanji";
 
-    // Trigger smooth entrance animation for the question text
     const qText = $("quizQuestion");
-    qText.classList.remove("q-in");
-    void qText.offsetWidth; // Force browser reflow to restart animation
-    qText.classList.add("q-in");
-
-    safeText(qText, isRev ? w.meaning : w.kanji);
-    const ans = isRev ? w.kanji : w.meaning;
-    
-    if(isRev) $("quizSpeakBtn").style.display = "none";
-    else {
-        $("quizSpeakBtn").style.display = "block";
-        $("quizSpeakBtn").onclick = () => speakJapanese(w.hiragana);
+    if (qText) {
+        qText.classList.remove("q-in");
+        void qText.offsetWidth;
+        qText.classList.add("q-in");
+        safeText(qText, isRev ? w.meaning : (w.kanji || w.hiragana));
     }
-    
-    const pool = vocabulary.filter(x => (isRev?x.kanji:x.meaning) !== ans).sort(()=>Math.random()-0.5).slice(0,3);
-    const opts = [ans, ...pool.map(x=>isRev?x.kanji:x.meaning)].sort(()=>Math.random()-0.5);
-    
-    ["optionA","optionB","optionC","optionD"].forEach((id, i) => {
-        const b = $(id); 
-        // Reset styles for new incoming options
-        b.className = "quiz-option opt-enter"; 
-        b.disabled = false; 
+
+    const ans = isRev ? (w.kanji || w.hiragana) : w.meaning;
+
+    if ($("quizSpeakBtn")) {
+        if (isRev) {
+            $("quizSpeakBtn").style.display = "none";
+        } else {
+            $("quizSpeakBtn").style.display = "block";
+            $("quizSpeakBtn").onclick = () => speakJapanese(w.hiragana || w.kanji);
+        }
+    }
+
+    const pool = shuffleArray(
+        vocabulary.filter(x => (isRev ? (x.kanji || x.hiragana) : x.meaning) !== ans)
+    ).slice(0, 3);
+    const opts = shuffleArray([ans, ...pool.map(x => (isRev ? (x.kanji || x.hiragana) : x.meaning))]);
+
+    ["optionA", "optionB", "optionC", "optionD"].forEach((id, i) => {
+        const b = $(id);
+        if (!b || opts[i] === undefined) return;
+        b.className = "quiz-option opt-enter";
+        b.disabled = false;
         b.style.opacity = "1";
         b.style.transform = "none";
         safeText(b, opts[i]);
-        
+
         setTimeout(() => b.classList.remove("opt-enter"), 400);
 
         b.onclick = () => {
             document.querySelectorAll(".quiz-option").forEach(btn => {
-                btn.disabled = true; 
-                if(btn.textContent === ans) btn.classList.add("correct");
+                btn.disabled = true;
+                if (btn.textContent === ans) btn.classList.add("correct");
             });
-            
-            if(opts[i] === ans) { 
-                score++; 
+
+            const key = wordKey(w);
+            if (opts[i] === ans) {
+                score++;
                 quizStreak++;
                 quizBestStreak = Math.max(quizBestStreak, quizStreak);
-                b.classList.add("correct"); 
+                b.classList.add("correct");
                 quizHistory.push({ word: w, correct: true });
-                recordStudy(); 
-            } else { 
-                quizStreak = 0; 
-                b.classList.add("wrong"); 
+                recordStudy();
+            } else {
+                quizStreak = 0;
+                b.classList.add("wrong");
                 quizHistory.push({ word: w, correct: false });
-                if (!userProfile.weak.includes(w.kanji)) userProfile.weak.push(w.kanji);
+                if (key && !userProfile.weak.includes(key)) userProfile.weak.push(key);
             }
-            
-            store.set('jlpt_profile', userProfile);
-            updateQuizUI(); 
-            
-            // 🌟 Smooth Exit Animation Sequence
-            setTimeout(() => {
-                $("quizQuestion").classList.add("q-out");
-                ["optionA","optionB","optionC","optionD"].forEach(optId => {
-                    const opt = $(optId);
-                    opt.style.transition = "all 0.2s var(--ease-out)";
-                    opt.style.opacity = "0";
-                    opt.style.transform = "translateX(-20px)";
-                });
 
-                // Wait for exit animations to finish before loading next question
+            store.set("jlpt_profile", userProfile);
+            updateQuizUI();
+
+            setTimeout(() => {
+                const quizBox = document.querySelector(".quiz-box");
+                quizBox?.classList.add("slide-out-left");
                 setTimeout(() => {
-                    $("quizQuestion").classList.remove("q-out");
+                    quizBox?.classList.remove("slide-out-left");
                     qNum++;
                     nextQuizQuestion();
-                }, 200); 
-            }, 1000); // Wait 1 second after user clicks to read the answer
+                    quizBox?.classList.add("slide-in-right");
+                    setTimeout(() => quizBox?.classList.remove("slide-in-right"), 300);
+                }, 220);
+            }, 1000);
         };
     });
 }
+window.nextQuizQuestion = nextQuizQuestion;
 
 function endQuiz() {
-    // Hide active question elements
-    $("quizQuestion").style.display = "none";
-    $("quizSpeakBtn").style.display = "none";
-    ["optionA","optionB","optionC","optionD"].forEach(id => $(id).style.display = "none");
-    $("quizCounter").textContent = "Quiz Complete";
-    $("quizProgressFill").style.width = "100%";
+    if ($("quizQuestion")) $("quizQuestion").style.display = "none";
+    if ($("quizSpeakBtn")) $("quizSpeakBtn").style.display = "none";
+    ["optionA", "optionB", "optionC", "optionD"].forEach(id => { if ($(id)) $(id).style.display = "none"; });
+    safeText($("quizCounter"), "Quiz Complete");
+    if ($("quizProgressFill")) $("quizProgressFill").style.width = "100%";
 
-    const pct = Math.round((score / 20) * 100);
+    const pct = quizHistory.length ? Math.round((score / quizHistory.length) * 100) : 0;
     const resBox = $("quizResult");
-    
-    let reportHTML = quizHistory.map(h => `
-        <div class="quiz-report-item ${h.correct ? 'r-correct' : 'r-wrong'}">
-            <span class="r-icon">${h.correct ? '✅' : '❌'}</span>
-            <span class="r-kanji">${h.word.kanji}</span>
-            <span class="r-kana">${h.word.hiragana}</span>
-            <span class="meaning" style="margin-left:auto; font-size:12px; opacity:0.8;">${h.word.meaning}</span>
-        </div>
-    `).join('');
+    if (!resBox) return;
 
-    resBox.innerHTML = `
-        <div class="quiz-summary">
-            <div class="quiz-summary-score">
-                <div class="score-big">${score} / 20</div>
-                <div class="score-label">Final Score</div>
-            </div>
-            <div class="quiz-summary-stats">
-                <div class="quiz-summary-stat">
-                    <div class="stat-val">${pct}%</div>
-                    <div class="stat-key">Accuracy</div>
-                </div>
-                <div class="quiz-summary-stat">
-                    <div class="stat-val">${quizBestStreak}</div>
-                    <div class="stat-key">Best Streak</div>
-                </div>
-            </div>
-            <div class="quiz-report-list">
-                ${reportHTML}
-            </div>
-            <button class="quiz-summary-restart" onclick="startNewQuiz()">Retry Quiz</button>
-        </div>
-    `;
+    const summary = document.createElement("div");
+    summary.className = "quiz-summary";
+
+    const scoreWrap = document.createElement("div");
+    scoreWrap.className = "quiz-summary-score";
+    const scoreBig = document.createElement("div");
+    scoreBig.className = "score-big";
+    scoreBig.textContent = `${score} / ${quizHistory.length}`;
+    const scoreLabel = document.createElement("div");
+    scoreLabel.className = "score-label";
+    scoreLabel.textContent = "Final Score";
+    scoreWrap.append(scoreBig, scoreLabel);
+
+    const statsWrap = document.createElement("div");
+    statsWrap.className = "quiz-summary-stats";
+    const mkStat = (val, key) => {
+        const s = document.createElement("div"); s.className = "quiz-summary-stat";
+        const v = document.createElement("div"); v.className = "stat-val"; v.textContent = String(val);
+        const k = document.createElement("div"); k.className = "stat-key"; k.textContent = key;
+        s.append(v, k); return s;
+    };
+    statsWrap.append(mkStat(`${pct}%`, "Accuracy"), mkStat(quizBestStreak, "Best Streak"));
+
+    const radarWrap = document.createElement("div");
+    radarWrap.className = "radar-chart-wrap";
+    radarWrap.style.margin = "14px 0";
+    const radarTitle = document.createElement("div");
+    radarTitle.className = "radar-chart-title";
+    radarTitle.textContent = "Performance Radar";
+    const radarCanvas = document.createElement("canvas");
+    radarCanvas.id = "quizRadarCanvas";
+    radarCanvas.width = 220; radarCanvas.height = 220;
+    radarWrap.append(radarTitle, radarCanvas);
+
+    const reportList = document.createElement("div");
+    reportList.className = "quiz-report-list";
+    quizHistory.forEach(h => {
+        const row = document.createElement("div");
+        row.className = `quiz-report-item ${h.correct ? "r-correct" : "r-wrong"}`;
+        const icon = document.createElement("span"); icon.className = "r-icon"; icon.textContent = h.correct ? "✅" : "❌";
+        const kanji = document.createElement("span"); kanji.className = "r-kanji"; kanji.textContent = h.word.kanji || h.word.hiragana || "";
+        const kana  = document.createElement("span"); kana.className  = "r-kana";  kana.textContent  = h.word.hiragana || "";
+        const mean  = document.createElement("span"); mean.style.cssText = "margin-left:auto; font-size:12px; opacity:0.8;"; mean.textContent = h.word.meaning || "";
+        row.append(icon, kanji, kana, mean);
+        reportList.appendChild(row);
+    });
+
+    const restartBtn = document.createElement("button");
+    restartBtn.className = "quiz-summary-restart";
+    restartBtn.type = "button";
+    restartBtn.textContent = "Retry Quiz";
+    restartBtn.addEventListener("click", startNewQuiz);
+
+    summary.append(scoreWrap, statsWrap, radarWrap, reportList, restartBtn);
+    resBox.replaceChildren(summary);
+
+    setTimeout(() => {
+        if (typeof drawRadarFromHistory === "function") {
+            drawRadarFromHistory("quizRadarCanvas", quizHistory);
+        }
+    }, 80);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CUSTOM DROPDOWN 
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   CUSTOM LESSON DROPDOWN
+   ═══════════════════════════════════════════════════════════════════════════════ */
 const dropBox = $("lessonDropdown");
 const dropSel = $("lessonSelected");
 const dropOpts = $("lessonOptions");
 
-if(dropBox && dropSel && dropOpts) {
+if (dropBox && dropSel && dropOpts) {
     dropBox.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const willOpen = !dropBox.classList.contains("open");
         dropBox.classList.toggle("open");
-        dropOpts.classList.toggle("hidden");
+        dropBox.setAttribute("aria-expanded", String(willOpen));
+    });
+    dropBox.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            dropBox.click();
+        }
     });
 
     document.addEventListener("click", e => {
         if (!dropBox.contains(e.target)) {
             dropBox.classList.remove("open");
-            dropOpts.classList.add("hidden");
+            dropBox.setAttribute("aria-expanded", "false");
         }
     });
 
-    for(let i=1; i<=50; i++) { 
-        const o = document.createElement("div"); 
+    const fragOpts = document.createDocumentFragment();
+    for (let i = 1; i <= 50; i++) {
+        const o = document.createElement("div");
         o.className = "dropdown-option";
-        o.textContent = `Lesson ${i}`; 
-        o.onclick = () => {
+        o.setAttribute("role", "option");
+        o.tabIndex = 0;
+        o.textContent = `Lesson ${i}`;
+        o.addEventListener("click", (e) => {
+            e.stopPropagation();
             dropSel.textContent = `Lesson ${i}`;
+            dropBox.classList.remove("open");
+            dropBox.setAttribute("aria-expanded", "false");
             loadLesson(i);
-        };
-        dropOpts.appendChild(o); 
+        });
+        fragOpts.appendChild(o);
     }
+    dropOpts.appendChild(fragOpts);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// COMMAND PALETTE & KEYBOARD SHORTCUTS
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   COMMAND PALETTE
+   ═══════════════════════════════════════════════════════════════════════════════ */
 const commands = [
-    { n: 'Go to Dashboard', k: 'hd', a: () => $('dashboardBtn').click() },
-    { n: 'Review SRS', k: 'hr', a: () => $('reviewBtn').click() },
-    { n: 'Toggle Theme', k: 'ht', a: () => $('themeToggleBtn').click() },
-    { n: 'Export Backup', k: 'eb', a: () => store.export() }
+    { n: "Go to Dashboard", k: "H", a: () => $("dashboardBtn")?.click() },
+    { n: "Go to Vocabulary", k: "V", a: () => $("vocabBtn")?.click() },
+    { n: "Review SRS", k: "R", a: () => $("reviewBtn")?.click() },
+    { n: "Start Quiz", k: "Q", a: () => $("quizBtn")?.click() },
+    { n: "Open Games", k: "", a: () => $("gamesBtn")?.click() },
+    { n: "My Decks", k: "D", a: () => $("decksNavBtn")?.click() },
+    { n: "Toggle Theme", k: "", a: () => $("themeToggleBtn")?.click() },
+    { n: "Open Settings", k: "", a: () => $("settingsBtn")?.click() },
+    { n: "Export Backup", k: "", a: () => store.export() },
+    { n: "Daily Challenge", k: "", a: () => window.startDailyChallenge?.() },
+    { n: "Speed Round", k: "", a: () => window.startSpeedRound?.() },
+    { n: "Keyboard Shortcuts", k: "?", a: () => $("shortcutOverlay")?.classList.remove("hidden") }
 ];
 
-document.addEventListener('keydown', e => {
-    if (e.ctrlKey && e.key === 'k') { e.preventDefault(); toggleCmdPalette(); }
-    if (e.key === 'Escape') { $('cmdOverlay').classList.add('hidden'); closeFeedback(); }
-    
-    // Bind Keyboard Shortcuts to unified Review Mode
-    if (currentView === 'reviewView') {
-        if(e.key === 'ArrowRight') $('reviewNextBtn').click();
-        if(e.key === 'ArrowLeft') $('reviewPrevBtn').click();
-        if(e.key === ' ') { e.preventDefault(); $('srsFlashcard').click(); }
-        if(e.key==='1') $('srsBtn1').click(); 
-        if(e.key==='2') $('srsBtn2').click();
-        if(e.key==='3') $('srsBtn3').click(); 
-        if(e.key==='4') $('srsBtn4').click();
+document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        toggleCmdPalette();
+        return;
+    }
+    if (e.key === "Escape") { $("cmdOverlay")?.classList.add("hidden"); closeFeedback(); }
+
+    if (currentView === "reviewView") {
+        const tag = document.activeElement?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        if (e.key === "ArrowRight") $("reviewNextBtn")?.click();
+        if (e.key === "ArrowLeft") $("reviewPrevBtn")?.click();
+        if (e.key === " ") { e.preventDefault(); $("srsFlashcard")?.click(); }
+        if (e.key === "1") $("srsBtn1")?.click();
+        if (e.key === "2") $("srsBtn2")?.click();
+        if (e.key === "3") $("srsBtn3")?.click();
+        if (e.key === "4") $("srsBtn4")?.click();
     }
 });
 
 function toggleCmdPalette() {
-    const o = $('cmdOverlay'), i = $('cmdInput');
-    if (o.classList.contains('hidden')) { o.classList.remove('hidden'); i.value=''; i.focus(); renderCmd(); }
-    else { o.classList.add('hidden'); }
+    const o = $("cmdOverlay"), i = $("cmdInput");
+    if (!o || !i) return;
+    if (o.classList.contains("hidden")) { o.classList.remove("hidden"); i.value = ""; i.focus(); renderCmd(); }
+    else { o.classList.add("hidden"); }
 }
+window.toggleCmdPalette = toggleCmdPalette;
+$("cmdPaletteMobileBtn")?.addEventListener("click", toggleCmdPalette);
+$("cmdCloseBtn")?.addEventListener("click", () => $("cmdOverlay")?.classList.add("hidden"));
 
-$('cmdInput')?.addEventListener('input', e => renderCmd(e.target.value.toLowerCase()));
-function renderCmd(q = '') {
-    const r = $('cmdResults'); r.innerHTML = '';
+$("cmdInput")?.addEventListener("input", e => renderCmd(e.target.value.toLowerCase()));
+function renderCmd(q = "") {
+    const r = $("cmdResults");
+    if (!r) return;
+    r.innerHTML = "";
     const matches = commands.filter(c => c.n.toLowerCase().includes(q));
     matches.forEach(c => {
-        const li = document.createElement('li'); li.className = 'cmd-item';
-        li.innerHTML = `<span>${c.n}</span> <span class="cmd-kbd">${c.k}</span>`;
-        li.onclick = () => { c.a(); toggleCmdPalette(); };
+        const li = document.createElement("li");
+        li.className = "cmd-item";
+        li.tabIndex = 0;
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = c.n;
+        const kbdSpan = document.createElement("span");
+        kbdSpan.className = "cmd-kbd";
+        kbdSpan.textContent = c.k;
+        li.appendChild(nameSpan);
+        li.appendChild(kbdSpan);
+        li.addEventListener("click", () => { c.a(); toggleCmdPalette(); });
         r.appendChild(li);
     });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SETTINGS & FEEDBACK EVENTS
-// ═══════════════════════════════════════════════════════════════════════════════
-$('exportBtn')?.addEventListener('click', store.export);
-$('importFile')?.addEventListener('change', e => { if(e.target.files[0]) store.import(e.target.files[0]); });
-$('resetDataBtn')?.addEventListener('click', () => {
-    if(confirm("Are you sure? This deletes ALL progress and SRS data forever.")) {
-        localStorage.clear(); location.reload();
-    }
-});
+/* ═══════════════════════════════════════════════════════════════════════════════
+   FEEDBACK MODAL
+   ═══════════════════════════════════════════════════════════════════════════════ */
+$("feedbackFab")?.addEventListener("click", () => $("feedbackOverlay")?.classList.remove("hidden"));
+function closeFeedback() {
+    $("feedbackOverlay")?.classList.add("hidden");
+    if ($("feedbackText")) $("feedbackText").value = "";
+}
+window.closeFeedback = closeFeedback;
 
-$('savePreferencesBtn')?.addEventListener('click', () => {
-    userProfile.dailyGoal = parseInt($('goalSelect').value);
-    userProfile.autoPlay = $('autoPlayAudio').checked;
-    store.set('jlpt_profile', userProfile);
-    updateDashboard(); 
-    showToast("Preferences saved successfully!", "success");
-});
-
-$('feedbackFab')?.addEventListener('click', () => $('feedbackOverlay').classList.remove('hidden'));
-function closeFeedback() { $('feedbackOverlay').classList.add('hidden'); $('feedbackText').value = ''; }
-
-$('submitFeedbackBtn')?.addEventListener('click', () => {
-    const c = $('feedbackCategory').value;
-    const t = $('feedbackText').value;
+$("submitFeedbackBtn")?.addEventListener("click", () => {
+    const c = $("feedbackCategory")?.value || "Other";
+    const t = $("feedbackText")?.value || "";
     const to = "sahurahulcoc@gmail.com";
-    const subject = encodeURIComponent(`JLPT Trainer V2 Feedback: ${c}`);
+    const subject = encodeURIComponent(`JLPT Trainer Feedback: ${c}`);
     const body = encodeURIComponent(t);
 
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -973,51 +1409,80 @@ $('submitFeedbackBtn')?.addEventListener('click', () => {
     if (isIOS) {
         window.location.href = `googlegmail:///co?to=${to}&subject=${subject}&body=${body}`;
     } else if (isMobile) {
-        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`, '_blank');
+        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`, "_blank", "noopener,noreferrer");
     } else {
         const mailtoLink = `mailto:${to}?subject=${subject}&body=${body}`;
-        window.open(`https://mail.google.com/mail/u/0/?extsrc=mailto&url=${encodeURIComponent(mailtoLink)}`, '_blank');
+        window.open(`https://mail.google.com/mail/u/0/?extsrc=mailto&url=${encodeURIComponent(mailtoLink)}`, "_blank", "noopener,noreferrer");
     }
-    closeFeedback(); showToast("Opening Gmail...", "success");
+    closeFeedback();
+    showToast("Opening Gmail...", "success");
 });
 
-$('themeToggleBtn')?.addEventListener('click', () => {
-    document.body.classList.toggle('light-theme');
-    const isLight = document.body.classList.contains('light-theme');
-    store.set('jlpt_theme', isLight ? 'light' : 'dark');
-    if(window.__setLightRaysTheme) window.__setLightRaysTheme(isLight);
-});
-if(store.get('jlpt_theme') === 'light') document.body.classList.add('light-theme');
+/* ═══════════════════════════════════════════════════════════════════════════════
+   THEME
+   ═══════════════════════════════════════════════════════════════════════════════ */
+function updateThemeLabels(isLight) {
+    const label = $("themeLabel");
+    const hoverLabel = $("themeLabelHover");
+    const mLabel = $("mThemeBtn");
+    if (label) label.textContent = isLight ? "🌙 Dark" : "☀️ Light";
+    if (hoverLabel) hoverLabel.textContent = isLight ? "☀️ Light" : "🌙 Dark";
+    if (mLabel) mLabel.textContent = isLight ? "🌙 Dark Mode" : "☀️ Light Mode";
+}
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// INITIALIZATION
-// ═══════════════════════════════════════════════════════════════════════════════
-const initLvl = store.get('jlpt_lastLesson', 1);
+$("themeToggleBtn")?.addEventListener("click", () => {
+    document.body.classList.toggle("light-theme");
+    const isLight = document.body.classList.contains("light-theme");
+    store.set("jlpt_theme", isLight ? "light" : "dark");
+    if (window.__setLightRaysTheme) window.__setLightRaysTheme(isLight);
+    updateThemeLabels(isLight);
+});
+
+const isLightTheme = store.get("jlpt_theme") === "light";
+if (isLightTheme) document.body.classList.add("light-theme");
+updateThemeLabels(isLightTheme);
+const metaThemeInit = document.getElementById("metaThemeColor");
+if (metaThemeInit) metaThemeInit.content = isLightTheme ? "#e2e8f0" : "#07080d";
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   INITIALIZATION
+   ═══════════════════════════════════════════════════════════════════════════════ */
+const initLvl = store.get("jlpt_lastLesson", 1);
 loadLesson(initLvl);
-showView('dashboardView');
-syncNavPill('dashboard');
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// GSAP FLUID HOVER ANIMATION
-// ═══════════════════════════════════════════════════════════════════════════════
+const _startHash = (window.location.hash || "").replace("#", "");
+if (_startHash === "review") {
+    showView("reviewView");
+    syncNavPill("review");
+    setTimeout(() => startReview(), 50);
+} else if (_startHash === "quiz") {
+    showView("quizView");
+    syncNavPill("quiz");
+    setTimeout(() => startNewQuiz(), 50);
+} else {
+    showView("dashboardView");
+    syncNavPill("dashboard");
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   GSAP FLUID PILL-HOVER ANIMATION
+   ═══════════════════════════════════════════════════════════════════════════════ */
 function setupGSAPPill(pill) {
-    const circle = pill.querySelector('.hover-circle');
-    const label = pill.querySelector('.pill-label');
-    const white = pill.querySelector('.pill-label-hover');
-    
-    // Check if elements exist, if it's already bound, OR if GSAP failed to load
-    if(!circle || !label || !white || pill.dataset.gsapBound || typeof gsap === 'undefined') return;
+    const circle = pill.querySelector(".hover-circle");
+    const label = pill.querySelector(".pill-label");
+    const white = pill.querySelector(".pill-label-hover");
 
+    if (!circle || !label || !white || pill.dataset.gsapBound || typeof gsap === "undefined") return;
     pill.dataset.gsapBound = "true";
     let tl;
 
     const updateLayout = () => {
-        let w = pill.offsetWidth || 120;
-        let h = pill.offsetHeight || 36;
-        let R = ((w * w) / 4 + h * h) / (2 * h);
-        let D = Math.ceil(2 * R) + 2;
-        let delta = Math.ceil(R - Math.sqrt(Math.max(0, R * R - (w * w) / 4))) + 1;
-        let originY = D - delta;
+        const w = pill.offsetWidth || 120;
+        const h = pill.offsetHeight || 36;
+        const R = ((w * w) / 4 + h * h) / (2 * h);
+        const D = Math.ceil(2 * R) + 2;
+        const delta = Math.ceil(R - Math.sqrt(Math.max(0, R * R - (w * w) / 4))) + 1;
+        const originY = D - delta;
 
         circle.style.width = `${D}px`;
         circle.style.height = `${D}px`;
@@ -1027,37 +1492,115 @@ function setupGSAPPill(pill) {
         gsap.set(label, { y: 0 });
         gsap.set(white, { y: h + 10, opacity: 0 });
 
-        if(tl) tl.kill();
+        if (tl) tl.kill();
         tl = gsap.timeline({ paused: true });
-        
         tl.to(circle, { scale: 1.2, duration: 0.35, ease: "power2.out" }, 0);
         tl.to(label, { y: -(h + 5), duration: 0.35, ease: "power2.out" }, 0);
         tl.to(white, { y: 0, opacity: 1, duration: 0.35, ease: "power2.out" }, 0);
     };
 
-    pill.addEventListener('mouseenter', () => { updateLayout(); tl.play(); });
-    pill.addEventListener('mouseleave', () => { if(tl) tl.reverse(); });
+    pill.addEventListener("mouseenter", () => { updateLayout(); tl.play(); });
+    pill.addEventListener("mouseleave", () => { if (tl) tl.reverse(); });
 }
 
-setTimeout(() => { document.querySelectorAll('.pill, .pill-anim').forEach(setupGSAPPill); }, 200);
+function initAllPillAnimations() {
+    document.querySelectorAll(".pill, .pill-anim").forEach(setupGSAPPill);
+}
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SMART SCROLL LOGIC
-// ═══════════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SMART SCROLL (hide nav/toolbar on scroll-down)
+   ═══════════════════════════════════════════════════════════════════════════════ */
 let lastScrollY = window.scrollY;
-const pillNavWrap = document.getElementById("pillNavWrap");
-const floatingToolbar = document.getElementById("floatingToolbar");
+const pillNavWrap = $("pillNavWrap");
+const floatingToolbar = $("floatingToolbar");
 
 window.addEventListener("scroll", () => {
     const currentScrollY = window.scrollY;
     if (Math.abs(currentScrollY - lastScrollY) > 10) {
         if (currentScrollY > lastScrollY && currentScrollY > 100) {
-            if(pillNavWrap) pillNavWrap.classList.add("nav-hidden");
-            if(floatingToolbar) floatingToolbar.classList.add("toolbar-hidden");
+            pillNavWrap?.classList.add("nav-hidden");
+            floatingToolbar?.classList.add("toolbar-hidden");
         } else {
-            if(pillNavWrap) pillNavWrap.classList.remove("nav-hidden");
-            if(floatingToolbar) floatingToolbar.classList.remove("toolbar-hidden");
+            pillNavWrap?.classList.remove("nav-hidden");
+            floatingToolbar?.classList.remove("toolbar-hidden");
         }
         lastScrollY = currentScrollY;
     }
 }, { passive: true });
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SRS DOCK — mouse-proximity magnification (macOS-dock style)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+function setupSRSDock() {
+    const dock = $("srsDock");
+    if (!dock) return;
+
+    const items = Array.from(dock.querySelectorAll(".srs-dock-item"));
+    const buttons = items.map(item => item.querySelector(".srs-dock-btn")).filter(Boolean);
+    const BASE_SIZE = 56;
+    const MAX_SIZE = 88;
+    const INFLUENCE = 150;
+
+    let centers = [];
+    let rafPending = false;
+    let lastClientX = 0;
+
+    function recalcCenters() {
+        centers = buttons.map(btn => {
+            const rect = btn.getBoundingClientRect();
+            return rect.left + rect.width / 2;
+        });
+    }
+
+    function applyMagnification(clientX) {
+        buttons.forEach((btn, i) => {
+            const dist = Math.abs(clientX - centers[i]);
+            let size = dist < INFLUENCE
+                ? BASE_SIZE + (MAX_SIZE - BASE_SIZE) * Math.pow(1 - dist / INFLUENCE, 1.8)
+                : BASE_SIZE;
+            size = Math.round(size);
+            btn.style.width = size + "px";
+            btn.style.height = size + "px";
+            btn.style.fontSize = Math.round(size * 0.40) + "px";
+            btn.style.borderRadius = Math.round(size * 0.265) + "px";
+        });
+        rafPending = false;
+    }
+
+    dock.addEventListener("mouseenter", recalcCenters);
+    dock.addEventListener("mousemove", e => {
+        lastClientX = e.clientX;
+        if (!rafPending) {
+            rafPending = true;
+            requestAnimationFrame(() => applyMagnification(lastClientX));
+        }
+    });
+    dock.addEventListener("mouseleave", () => {
+        buttons.forEach(btn => {
+            btn.style.width = "";
+            btn.style.height = "";
+            btn.style.fontSize = "";
+            btn.style.borderRadius = "";
+        });
+    });
+
+    window.addEventListener("resize", () => {
+        if (dock.matches(":hover")) recalcCenters();
+    }, { passive: true });
+
+    buttons.forEach(btn => {
+        btn.addEventListener("touchstart", () => {
+            btn.style.width = MAX_SIZE + "px";
+            btn.style.height = MAX_SIZE + "px";
+            btn.style.fontSize = Math.round(MAX_SIZE * 0.40) + "px";
+        }, { passive: true });
+        btn.addEventListener("touchend", () => {
+            btn.style.width = "";
+            btn.style.height = "";
+            btn.style.fontSize = "";
+        }, { passive: true });
+    });
+}
+
+setTimeout(initAllPillAnimations, 200);
+setupSRSDock();
