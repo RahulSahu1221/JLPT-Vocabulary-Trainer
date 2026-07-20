@@ -153,7 +153,6 @@ The project demonstrates modern frontend engineering concepts while remaining li
 - Meteor Game
 - Shiritori
 - Mock Test
-- Speed Round
 
 Designed to make vocabulary revision enjoyable while reinforcing memory.
 
@@ -251,10 +250,10 @@ images/games.png
 
 ---
 
-## Analytics
+## Quiz
 
 ```text
-images/analytics.png
+images/quiz.png
 ```
 
 ---
@@ -263,6 +262,12 @@ images/analytics.png
 
 ```text
 images/settings.png
+```
+
+## Decks
+
+```text
+images/decks.png
 ```
 
 ---
@@ -443,6 +448,7 @@ JLPT-Vocabulary-Trainer
 ├── games.js
 ├── sw.js
 ├── manifest.json
+├── package-lock.json
 │
 ├── data
 │     ├── assets
@@ -1088,7 +1094,7 @@ Continue Learning Offline
 
 ---
 
-# ⚙️ Performance Optimization
+# Performance Optimization
 
 The application has been optimized for fast loading and smooth interaction.
 
@@ -1320,17 +1326,17 @@ New lessons, games, or features can be added with minimal modification.
 ```text
 JLPT-Vocabulary-Trainer
 │
-├── 📄 index.html
-├── 📄 style.css
-├── 📄 app.js
-├── 📄 decks.js
-├── 📄 games.js
-├── 📄 sw.js
-├── 📄 manifest.json
-├── 📄 package-lock.json
+├── index.html
+├── style.css
+├── app.js
+├── ecks.js
+├── games.js
+├── sw.js
+├── manifest.json
+├── package-lock.json
 │
-├── 📁 data
-│   ├── 📁 assets
+├── data
+│   ├── assets
 │   │   ├── logo.jpg
 │   │   ├── icons
 │   │   └── images
@@ -1340,7 +1346,7 @@ JLPT-Vocabulary-Trainer
 │   ├── ...
 │   └── lesson50.json
 │
-├── 📁 images
+├── images
 │   ├── dashboard.png
 │   ├── vocabulary.png
 │   ├── review.png
@@ -1348,8 +1354,8 @@ JLPT-Vocabulary-Trainer
 │   ├── analytics.png
 │   └── settings.png
 │
-├── 📄 LICENSE
-└── 📄 README.md
+├── LICENSE
+└── README.md
 ```
 
 ---
