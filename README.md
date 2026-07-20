@@ -436,27 +436,27 @@ Improve JLPT Readiness
 ```text
 JLPT-Vocabulary-Trainer
 │
-├── 📄 index.html
-├── 📄 style.css
-├── 📄 app.js
-├── 📄 decks.js
-├── 📄 games.js
-├── 📄 sw.js
-├── 📄 manifest.json
+├── index.html
+├── style.css
+├── app.js
+├── decks.js
+├── games.js
+├── sw.js
+├── manifest.json
 │
-├── 📁 data
-│     ├── 📁 assets
-│     ├── 📄 lesson1.json
-│     ├── 📄 lesson2.json
-│     ├── 📄 lesson3.json
+├── data
+│     ├── assets
+│     ├── lesson1.json
+│     ├── lesson2.json
+│     ├── lesson3.json
 │     ├── ...
-│     └── 📄 lesson50.json
+│     └── lesson50.json
 │
-├── 📁 images
+├── images
 │
-├── 📄 README.md
+├── README.md
 │
-└── 📄 LICENSE
+└── LICENSE
 ```
 
 ---
@@ -477,7 +477,7 @@ cd JLPT-Vocabulary-Trainer
 
 ---
 
-# ▶ Running the Project
+# Running the Project
 
 Since the application is built using Vanilla JavaScript, no build tools are required.
 
