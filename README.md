@@ -52,13 +52,13 @@ Built entirely using **Vanilla HTML, CSS, and JavaScript** without any frontend 
 
 ---
 
-### ⭐ If you like this project, please consider giving it a star!
+### If you like this project, please consider giving it a star!
 
 </div>
 
 ---
 
-# 📖 Table of Contents
+# Table of Contents
 
 - Overview
 - Why this Project?
@@ -76,7 +76,7 @@ Built entirely using **Vanilla HTML, CSS, and JavaScript** without any frontend 
 
 ---
 
-# 📚 Overview
+# Overview
 
 Learning Japanese vocabulary is often repetitive, difficult to maintain, and lacking meaningful progress tracking. Most vocabulary applications provide only flashcards or quizzes, making it difficult for learners to stay motivated over long periods.
 
@@ -97,7 +97,7 @@ Everything runs entirely inside the browser without requiring any backend server
 
 ---
 
-# 🎯 Why this Project?
+# Why this Project?
 
 The objective of this project was to create a complete learning platform rather than just another vocabulary application.
 
@@ -113,9 +113,9 @@ The project demonstrates modern frontend engineering concepts while remaining li
 
 ---
 
-# ✨ Key Features
+# Key Features
 
-## 📖 Vocabulary Learning
+## Vocabulary Learning
 
 - JLPT N5 & N4 vocabulary database
 - Kanji
@@ -127,7 +127,7 @@ The project demonstrates modern frontend engineering concepts while remaining li
 
 ---
 
-## 🧠 Smart Spaced Repetition (SRS)
+## Smart Spaced Repetition (SRS)
 
 - Adaptive review scheduling
 - Intelligent memory reinforcement
@@ -137,7 +137,7 @@ The project demonstrates modern frontend engineering concepts while remaining li
 
 ---
 
-## ⚡ Interactive Quiz Engine
+## Interactive Quiz Engine
 
 - Multiple quiz modes
 - Instant scoring
@@ -147,7 +147,7 @@ The project demonstrates modern frontend engineering concepts while remaining li
 
 ---
 
-## 🎮 Educational Games
+## Educational Games
 
 - Memory Match
 - Meteor Game
@@ -159,7 +159,7 @@ Designed to make vocabulary revision enjoyable while reinforcing memory.
 
 ---
 
-## 📊 Analytics Dashboard
+## Analytics Dashboard
 
 - Daily learning statistics
 - Heatmap visualization
@@ -171,7 +171,7 @@ Designed to make vocabulary revision enjoyable while reinforcing memory.
 
 ---
 
-## 🗂 Custom Vocabulary Decks
+## Custom Vocabulary Decks
 
 - Create personal decks
 - Save favourite words
@@ -181,7 +181,7 @@ Designed to make vocabulary revision enjoyable while reinforcing memory.
 
 ---
 
-## 🔍 Intelligent Search
+## Intelligent Search
 
 Search vocabulary using:
 
@@ -192,7 +192,7 @@ Search vocabulary using:
 
 ---
 
-## 📱 Progressive Web App
+## Progressive Web App
 
 - Installable on desktop
 - Installable on Android
@@ -202,7 +202,7 @@ Search vocabulary using:
 
 ---
 
-## 🌙 Modern User Experience
+## Modern User Experience
 
 - Glassmorphism UI
 - Dark & Light themes
@@ -213,13 +213,13 @@ Search vocabulary using:
 
 ---
 
-# 📷 Screenshots
+# Screenshots
 
 > Replace the placeholders below with actual screenshots after uploading them to your repository.
 
 ---
 
-## 🏠 Dashboard
+## Dashboard
 
 ```text
 images/dashboard.png
@@ -227,7 +227,7 @@ images/dashboard.png
 
 ---
 
-## 📖 Vocabulary
+## Vocabulary
 
 ```text
 images/vocabulary.png
@@ -235,7 +235,7 @@ images/vocabulary.png
 
 ---
 
-## 🧠 Review
+## Review
 
 ```text
 images/review.png
@@ -243,7 +243,7 @@ images/review.png
 
 ---
 
-## 🎮 Games
+## Games
 
 ```text
 images/games.png
@@ -251,7 +251,7 @@ images/games.png
 
 ---
 
-## 📊 Analytics
+## Analytics
 
 ```text
 images/analytics.png
@@ -259,7 +259,7 @@ images/analytics.png
 
 ---
 
-## ⚙ Settings
+## Settings
 
 ```text
 images/settings.png
@@ -267,7 +267,7 @@ images/settings.png
 
 ---
 
-# 🚀 Technologies Used
+# Technologies Used
 
 | Technology | Purpose |
 |------------|----------|
@@ -283,7 +283,7 @@ images/settings.png
 
 ---
 
-# 🌟 Project Highlights
+# Project Highlights
 
 ✔ Progressive Web Application (PWA)
 
@@ -317,7 +317,7 @@ images/settings.png
 
 ---
 
-# 🏗 System Architecture
+# System Architecture
 
 ```text
                         User
@@ -369,7 +369,7 @@ images/settings.png
 
 ---
 
-# 🔄 Application Workflow
+# Application Workflow
 
 ```text
 Launch Application
@@ -431,7 +431,7 @@ Improve JLPT Readiness
 
 ---
 
-# 📂 Project Structure
+# Project Structure
 
 ```text
 JLPT-Vocabulary-Trainer
@@ -461,7 +461,7 @@ JLPT-Vocabulary-Trainer
 
 ---
 
-# 💻 Installation
+# Installation
 
 Clone the repository
 
@@ -499,7 +499,7 @@ The application will automatically open in your browser.
 
 ---
 
-# 🌐 Live Demo
+# Live Demo
 
 ## GitHub Pages
 
@@ -511,7 +511,7 @@ The application will automatically open in your browser.
 
 ---
 
-# 📖 Vocabulary Module
+# Vocabulary Module
 
 The Vocabulary Module serves as the core learning interface of the application. It provides an intuitive flashcard-based experience for studying JLPT N5–N4 vocabulary while supporting multiple learning methods.
 
@@ -522,10 +522,10 @@ Each vocabulary card contains carefully organized learning information to improv
 - 🇯🇵 Kanji
 - かな Hiragana Reading
 - 🇬🇧 English Meaning
-- 💡 Memory Hint
-- 📝 Example Sentence
-- 🎌 Category
-- ⭐ Favorite Status
+- Memory Hint
+- Example Sentence
+- Category
+- Favorite Status
 
 ---
 
@@ -587,7 +587,7 @@ Save Progress
 
 ---
 
-# 🧠 Spaced Repetition System (SRS)
+# Spaced Repetition System (SRS)
 
 One of the most important components of the application is the **Spaced Repetition System (SRS)**.
 
@@ -656,7 +656,7 @@ Save to Local Storage
 
 ---
 
-# ⚡ Quiz Engine
+# Quiz Engine
 
 The Quiz Engine allows learners to evaluate their understanding after completing vocabulary lessons.
 
@@ -720,7 +720,7 @@ Review Incorrect Answers
 
 ---
 
-# 🎮 Educational Games
+# Educational Games
 
 To reduce monotony and improve engagement, several educational games have been integrated into the application.
 
@@ -728,7 +728,7 @@ Instead of passive memorization, users actively interact with vocabulary.
 
 ---
 
-# 🧩 Memory Match
+# Memory Match
 
 A classic card matching game.
 
@@ -742,7 +742,7 @@ Users match vocabulary with corresponding meanings.
 
 ---
 
-# ☄️ Meteor Game
+# Meteor Game
 
 Japanese vocabulary falls from the top of the screen.
 
@@ -758,7 +758,7 @@ Players must quickly type the correct answer before the word reaches the bottom.
 
 ---
 
-# 🎌 Shiritori
+# Shiritori
 
 Based on the traditional Japanese word game.
 
@@ -774,7 +774,7 @@ Players continue the vocabulary chain using the ending character of the previous
 
 ---
 
-# ⚡ Speed Round
+# Speed Round
 
 A timed challenge that encourages quick thinking.
 
@@ -790,7 +790,7 @@ Users answer as many vocabulary questions as possible before time expires.
 
 ---
 
-# 📝 Mock Test
+# Mock Test
 
 Simulates an examination environment.
 
@@ -806,7 +806,7 @@ Includes
 
 ---
 
-# 📊 Dashboard
+# Dashboard
 
 The Dashboard acts as the learning control center.
 
@@ -834,7 +834,7 @@ Instead of simply displaying vocabulary, it provides meaningful insights into le
 
 ---
 
-# 📈 Learning Analytics
+# Learning Analytics
 
 Learning progress is continuously monitored and visualized.
 
@@ -860,7 +860,7 @@ The analytics system enables users to understand strengths and weaknesses.
 
 ---
 
-# 🔥 Activity Heatmap
+# Activity Heatmap
 
 Inspired by GitHub Contribution Graph.
 
@@ -884,7 +884,7 @@ Benefits
 
 ---
 
-# 🏆 XP & Level System
+# XP & Level System
 
 Learning is rewarded through experience points (XP).
 
@@ -948,7 +948,7 @@ Sensei
 
 ---
 
-# 🎯 Daily Challenge
+# Daily Challenge
 
 Every day the application generates a unique vocabulary challenge.
 
@@ -956,7 +956,7 @@ Completing the challenge rewards bonus XP and encourages consistent learning.
 
 ---
 
-# 🗂️ Custom Decks
+# Custom Decks
 
 Users can organize vocabulary into personalized collections.
 
@@ -990,7 +990,7 @@ Possible deck examples
 
 ---
 
-# 🔍 Smart Search
+# Smart Search
 
 The application supports intelligent searching across multiple writing systems.
 
@@ -1008,7 +1008,7 @@ This makes finding vocabulary significantly easier for beginners.
 
 ---
 
-# 🔔 Notifications
+# Notifications
 
 The application can notify users when vocabulary reviews become due.
 
@@ -1016,19 +1016,19 @@ Notifications help maintain learning consistency without requiring users to manu
 
 ---
 
-# 🌙 Theme System
+# Theme System
 
 Users can switch between
 
-🌞 Light Theme
+Light Theme
 
-🌙 Dark Theme
+Dark Theme
 
 The transition includes smooth animations and preserves user preference across sessions.
 
 ---
 
-# 📱 Progressive Web Application (PWA)
+# Progressive Web Application (PWA)
 
 The project has been developed as a Progressive Web Application.
 
@@ -1110,7 +1110,7 @@ Optimizations include
 
 ---
 
-# ♿ Accessibility
+# Accessibility
 
 Accessibility features have been considered throughout the application.
 
@@ -1130,26 +1130,25 @@ Implemented features include
 
 ---
 
-# 📌 What's Next?
+# What's Next?
 
 In **Part 3**, we'll cover:
 
-- 🔐 Security Architecture
-- 🧩 Browser APIs Used
-- ⚡ Performance Engineering
-- 📂 Complete Repository Structure
-- 👨‍💻 Developer Guide
-- 🤝 Contributing
-- 🚀 Future Roadmap
-- 🎓 Learning Outcomes
-- 📚 References
-- 📄 License
-- 👤 Author
-- ❤️ A premium GitHub footer
+- Security Architecture
+- Browser APIs Used
+- Performance Engineering
+- Complete Repository Structure
+- Developer Guide
+- Contributing
+- Future Roadmap
+- Learning Outcomes
+- References
+- License
+- A premium GitHub footer
 
 ---
 
-# 🔐 Security
+# Security
 
 Security was considered throughout the development of this application to ensure safe client-side execution and reliable data handling.
 
@@ -1211,7 +1210,7 @@ Local Storage
 
 ---
 
-# 🚀 Performance Engineering
+# Performance Engineering
 
 The application was designed with performance as a priority while keeping the codebase framework-independent.
 
@@ -1241,7 +1240,7 @@ The application was designed with performance as a priority while keeping the co
 
 ---
 
-# 🌐 Browser APIs Used
+# Browser APIs Used
 
 The project makes extensive use of modern browser APIs.
 
@@ -1258,7 +1257,7 @@ The project makes extensive use of modern browser APIs.
 
 ---
 
-# 📱 Progressive Web Application (PWA)
+# Progressive Web Application (PWA)
 
 This application behaves similarly to a native mobile application.
 
@@ -1294,7 +1293,7 @@ This application behaves similarly to a native mobile application.
 
 ---
 
-# 🧩 Project Design Principles
+# Project Design Principles
 
 The application follows several software engineering principles.
 
@@ -1316,7 +1315,7 @@ New lessons, games, or features can be added with minimal modification.
 
 ---
 
-# 📂 Complete Repository Structure
+# Complete Repository Structure
 
 ```text
 JLPT-Vocabulary-Trainer
@@ -1355,7 +1354,7 @@ JLPT-Vocabulary-Trainer
 
 ---
 
-# 🛠 Development Workflow
+# Development Workflow
 
 ```text
 Requirement Analysis
@@ -1405,7 +1404,7 @@ Maintenance
 
 ---
 
-# 💡 Challenges Faced
+# Challenges Faced
 
 During development, several technical challenges were encountered.
 
@@ -1420,7 +1419,7 @@ Each challenge provided valuable practical experience in frontend engineering an
 
 ---
 
-# 📚 Learning Outcomes
+# Learning Outcomes
 
 This project significantly improved my understanding of:
 
@@ -1439,7 +1438,7 @@ This project significantly improved my understanding of:
 
 ---
 
-# 🚀 Future Roadmap
+# Future Roadmap
 
 ## Planned Features
 
@@ -1458,7 +1457,7 @@ This project significantly improved my understanding of:
 
 ---
 
-# 🤝 Contributing
+# Contributing
 
 Contributions are welcome.
 
@@ -1474,7 +1473,7 @@ Please ensure that your code follows the existing project structure and coding s
 
 ---
 
-# 🐞 Reporting Issues
+# Reporting Issues
 
 If you encounter any bugs or have suggestions for improvements:
 
@@ -1485,28 +1484,13 @@ If you encounter any bugs or have suggestions for improvements:
 
 ---
 
-# 📜 License
+# License
 
 This project is released under the **MIT License**.
 
 You are free to use, modify, and distribute this project in accordance with the license terms.
 
 ---
-
-# 👨‍💻 Author
-
-## Rahul Sahu
-
-**Bachelor of Technology (Electrical & Electronics Engineering)**
-
-### Interests
-
-- Embedded Systems
-- Internet of Things (IoT)
-- Frontend Development
-- Human–Computer Interaction
-- Educational Technology
-- Japanese Language & Culture
 
 ### Connect
 
@@ -1515,7 +1499,7 @@ You are free to use, modify, and distribute this project in accordance with the 
 
 ---
 
-# 🙏 Acknowledgements
+# Acknowledgements
 
 Special thanks to:
 
@@ -1527,17 +1511,17 @@ Special thanks to:
 
 ---
 
-# ⭐ Support the Project
+# Support the Project
 
 If you found this project useful or interesting,
 
 please consider:
 
-⭐ Starring the repository
+Starring the repository
 
-🍴 Forking the project
+Forking the project
 
-📝 Sharing feedback
+Sharing feedback
 
 Your support helps improve the project and encourages future development.
 
@@ -1553,7 +1537,7 @@ Your support helps improve the project and encourages future development.
 
 ---
 
-### Made with ❤️ using HTML, CSS & JavaScript
+### Made with love using HTML, CSS & JavaScript
 
 **© 2026 Rahul Sahu**
 
