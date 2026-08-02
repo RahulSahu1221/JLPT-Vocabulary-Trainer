@@ -1,0 +1,67 @@
+[
+    {
+        "char": "一",
+        "meaning": "One",
+        "onyomi": ["イチ", "イツ"],
+        "kunyomi": ["ひと", "ひと.つ"],
+        "strokeCount": 1,
+        "radicals": ["一"],
+        "jlptLevel": "N5",
+        "examples": [
+            { "word": "一つ", "reading": "ひとつ", "meaning": "one thing" },
+            { "word": "一日", "reading": "ついたち", "meaning": "first day of the month" }
+        ]
+    },
+    {
+        "char": "二",
+        "meaning": "Two",
+        "onyomi": ["ニ"],
+        "kunyomi": ["ふた", "ふた.つ"],
+        "strokeCount": 2,
+        "radicals": ["二"],
+        "jlptLevel": "N5",
+        "examples": [
+            { "word": "二つ", "reading": "ふたつ", "meaning": "two things" },
+            { "word": "二人", "reading": "ふたり", "meaning": "two people" }
+        ]
+    },
+    {
+        "char": "人",
+        "meaning": "Person",
+        "onyomi": ["ジン", "ニン"],
+        "kunyomi": ["ひと"],
+        "strokeCount": 2,
+        "radicals": ["人"],
+        "jlptLevel": "N5",
+        "examples": [
+            { "word": "人", "reading": "ひと", "meaning": "person" },
+            { "word": "日本人", "reading": "にほんじん", "meaning": "Japanese person" }
+        ]
+    },
+    {
+        "char": "日",
+        "meaning": "Day, Sun",
+        "onyomi": ["ニチ", "ジツ"],
+        "kunyomi": ["ひ", "び", "か"],
+        "strokeCount": 4,
+        "radicals": ["日"],
+        "jlptLevel": "N5",
+        "examples": [
+            { "word": "日本", "reading": "にほん", "meaning": "Japan" },
+            { "word": "日曜日", "reading": "にちようび", "meaning": "Sunday" }
+        ]
+    },
+    {
+        "char": "本",
+        "meaning": "Book, Origin",
+        "onyomi": ["ホン"],
+        "kunyomi": ["もと"],
+        "strokeCount": 5,
+        "radicals": ["木", "一"],
+        "jlptLevel": "N5",
+        "examples": [
+            { "word": "本", "reading": "ほん", "meaning": "book" },
+            { "word": "本当", "reading": "ほんとう", "meaning": "truth, reality" }
+        ]
+    }
+]

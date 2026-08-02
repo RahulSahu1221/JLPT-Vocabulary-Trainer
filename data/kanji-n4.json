@@ -1,0 +1,41 @@
+[
+    {
+        "char": "飯",
+        "meaning": "Meal, Boiled rice",
+        "onyomi": ["ハン"],
+        "kunyomi": ["めし"],
+        "strokeCount": 12,
+        "radicals": ["食"],
+        "jlptLevel": "N4",
+        "examples": [
+            { "word": "ご飯", "reading": "ごはん", "meaning": "rice/meal" },
+            { "word": "朝飯", "reading": "あさめし", "meaning": "breakfast" }
+        ]
+    },
+    {
+        "char": "館",
+        "meaning": "Building, Mansion",
+        "onyomi": ["カン"],
+        "kunyomi": ["やかた", "たて"],
+        "strokeCount": 16,
+        "radicals": ["食"],
+        "jlptLevel": "N4",
+        "examples": [
+            { "word": "図書館", "reading": "としょかん", "meaning": "library" },
+            { "word": "映画館", "reading": "えいがかん", "meaning": "movie theater" }
+        ]
+    },
+    {
+        "char": "族",
+        "meaning": "Tribe, Family",
+        "onyomi": ["ゾク"],
+        "kunyomi": [],
+        "strokeCount": 11,
+        "radicals": ["方"],
+        "jlptLevel": "N4",
+        "examples": [
+            { "word": "家族", "reading": "かぞく", "meaning": "family" },
+            { "word": "民族", "reading": "みんぞく", "meaning": "people, race" }
+        ]
+    }
+]
