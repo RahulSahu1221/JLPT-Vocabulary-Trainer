@@ -472,7 +472,7 @@ JLPT-Vocabulary-Trainer
 Clone the repository
 
 ```bash
-git clone https://github.com/rahulsahu1221/JLPT-Vocabulary-Trainer.git
+git clone https://rahulsahu1221.github.io/RONIN/
 ```
 
 Navigate to the project directory
@@ -509,7 +509,7 @@ The application will automatically open in your browser.
 
 ## GitHub Pages
 
-**https://rahulsahu1221.github.io/JLPT-Vocabulary-Trainer/**
+**https://rahulsahu1221.github.io/RONIN/**
 
 ---
 
