@@ -122,9 +122,9 @@ Designed with a premium glassmorphism interface and built entirely with **Vanill
 | ---------------------- | ----------------------- |
 | `images/dashboard.png` | `images/vocabulary.png` |
 
-| Kanji              | Games              |
+| Decks              | Games              |
 | ------------------ | ------------------ |
-| `images/kanji.png` | `images/games.png` |
+| `images/decks.png` | `images/games.png` |
 
 | Analytics              | Review              |
 | ---------------------- | ------------------- |
