@@ -162,6 +162,13 @@ RONIN-A-JLPT-Vocabulary-Trainer
 │   ├── kanji-n4.json
 │   └── kanji-n5.json
 │
+├── images
+|   ├── dashboard.png
+|   ├── vocab.png
+|   ├── decks.png
+|   ├── games.png
+|   ├── analytics.png
+|   └── review.png
 ├── app.js
 ├── decks.js
 ├── games.js
