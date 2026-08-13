@@ -46,7 +46,7 @@ Built entirely using **Vanilla HTML, CSS, and JavaScript** without any frontend 
 
 🌐 **Live Website**
 
-### https://rahulsahu1221.github.io/RONIN/
+### https://rahulsahu1221.github.io/RONIN-A-JLPT-Vocabulary-Trainer/
 
 </p>
 
