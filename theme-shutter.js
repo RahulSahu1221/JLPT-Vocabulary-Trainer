@@ -17,15 +17,20 @@
    3. A thin fixed gradient bar ("shutter-edge") tracks the exact same
       keyframes to give the edge a soft drop-shadow + hint of motion blur,
       so it reads as a physical shutter rather than a flat wipe.
+   4. Both snapshots also blur up to a small peak at the sweep's midpoint and
+      sharpen back to 0 by the time it ends — a whip-pan style motion blur
+      that rides along with the edge instead of sitting on screen as a flat
+      overlay.
 
    No colors and no CSS custom properties are ever animated here — only
-   clip-path and transform, both of which the compositor can run at 60fps
-   without repainting the page underneath.
+   clip-path, filter, and transform, all of which the compositor can run at
+   60fps without repainting the page underneath.
    ═══════════════════════════════════════════════════════════════════════════ */
 "use strict";
 
-const SHUTTER_DURATION_MS = 175;
+const SHUTTER_DURATION_MS = 500; // was 175 — 175ms read as too fast/twitchy; 500ms gives the sweep time to actually register
 const SHUTTER_EASING = "cubic-bezier(0.22, 0.61, 0.36, 1)"; // slight accelerate, settle — no overshoot
+const SHUTTER_BLUR_PEAK_PX = 7; // how blurry the screen gets at the midpoint of the sweep — tune this one number to make the blur stronger/weaker
 
 function shutterSupported() {
     return typeof document.startViewTransition === "function";
@@ -71,13 +76,34 @@ async function runShutterTransition(applyThemeFn) {
 
     const clipAnim = document.documentElement.animate(
         [
-            { clipPath: "inset(0 0 100% 0)" },
-            { clipPath: "inset(0 0 0% 0)" }
+            { clipPath: "inset(0 0 100% 0)", filter: "blur(0px)" },
+            { clipPath: "inset(0 0 40% 0)",  filter: `blur(${SHUTTER_BLUR_PEAK_PX}px)`, offset: 0.5 },
+            { clipPath: "inset(0 0 0% 0)",   filter: "blur(0px)" }
         ],
         {
             duration: SHUTTER_DURATION_MS,
             easing: SHUTTER_EASING,
-            pseudoElement: "::view-transition-new(root)"
+            pseudoElement: "::view-transition-new(root)",
+            fill: "forwards" // hold the fully-revealed, fully-sharp state — without this, the
+                              // moment the animation ends the browser snaps clip-path back to
+                              // the base CSS rule (fully hidden), which is exactly what caused
+                              // the old-theme blink right after the sweep finished.
+        }
+    );
+
+    // The old theme blurs in step with the new one, so the whole screen briefly
+    // softens as the shutter passes over it rather than only the incoming layer.
+    const oldBlurAnim = document.documentElement.animate(
+        [
+            { filter: "blur(0px)" },
+            { filter: `blur(${SHUTTER_BLUR_PEAK_PX}px)`, offset: 0.5 },
+            { filter: "blur(0px)" }
+        ],
+        {
+            duration: SHUTTER_DURATION_MS,
+            easing: SHUTTER_EASING,
+            pseudoElement: "::view-transition-old(root)",
+            fill: "forwards"
         }
     );
 
@@ -88,12 +114,14 @@ async function runShutterTransition(applyThemeFn) {
         ],
         {
             duration: SHUTTER_DURATION_MS,
-            easing: SHUTTER_EASING
+            easing: SHUTTER_EASING,
+            fill: "forwards" // same reasoning — keep the edge bar at its end position
+                              // instead of snapping back to translateY(-26px)
         }
     );
 
     try {
-        await Promise.all([clipAnim.finished, edgeAnim.finished]);
+        await Promise.all([clipAnim.finished, oldBlurAnim.finished, edgeAnim.finished]);
     } catch (_) { /* interrupted by a rapid second toggle — fine, just clean up */ }
 
     edge.remove();
