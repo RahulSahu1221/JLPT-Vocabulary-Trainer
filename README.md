@@ -46,7 +46,7 @@ Built entirely using **Vanilla HTML, CSS, and JavaScript** without any frontend 
 
 🌐 **Live Website**
 
-### https://ronin-bgcxib9xl-rahulsahu404.vercel.app/
+### https://rahulsahu1221.github.io/RONIN/
 
 </p>
 
