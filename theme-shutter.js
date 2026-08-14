@@ -28,7 +28,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 "use strict";
 
-const SHUTTER_DURATION_MS = 600; // was 175 — 175ms read as too fast/twitchy; 380ms gives the sweep time to actually register
+const SHUTTER_DURATION_MS = 500; // was 175 — 175ms read as too fast/twitchy; 500ms gives the sweep time to actually register
 const SHUTTER_EASING = "cubic-bezier(0.22, 0.61, 0.36, 1)"; // slight accelerate, settle — no overshoot
 const SHUTTER_BLUR_PEAK_PX = 7; // how blurry the screen gets at the midpoint of the sweep — tune this one number to make the blur stronger/weaker
 
@@ -122,27 +122,7 @@ async function runShutterTransition(applyThemeFn) {
 
     try {
         await Promise.all([clipAnim.finished, oldBlurAnim.finished, edgeAnim.finished]);
-    } catch (_) { /* interrupted by a rapid second toggle — fine, still clean up below */
-    } finally {
-        // PERMANENT FIX for the "everything stays blurry on mobile" bug:
-        // fill:"forwards" only tells the browser to *hold* an animation's end
-        // state — it still relies on the browser to tear that state down once
-        // the view-transition pseudo-elements are discarded. Several mobile
-        // engines don't do that reliably for filter animations, so the blur
-        // can get stuck on the live page after the transition ends.
-        // .cancel() is a hard, explicit instruction to remove the animation's
-        // effect right now, regardless of how the browser handles cleanup —
-        // this runs in `finally` so it fires even on error or interruption.
-        clipAnim.cancel();
-        oldBlurAnim.cancel();
-        edgeAnim.cancel();
-
-        // Belt-and-suspenders: also force-clear any filter that might have
-        // leaked onto the real page (not just the transition snapshot), so
-        // there is no code path left that can leave the site blurred.
-        document.documentElement.style.filter = "";
-        document.body.style.filter = "";
-    }
+    } catch (_) { /* interrupted by a rapid second toggle — fine, just clean up */ }
 
     edge.remove();
     try { await transition.finished; } catch (_) { /* no-op */ }
