@@ -28,7 +28,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 "use strict";
 
-const SHUTTER_DURATION_MS = 500; // was 175 — 175ms read as too fast/twitchy; 500ms gives the sweep time to actually register
+const SHUTTER_DURATION_MS = 600; // was 175 — 175ms read as too fast/twitchy; 600ms gives the sweep time to actually register
 const SHUTTER_EASING = "cubic-bezier(0.22, 0.61, 0.36, 1)"; // slight accelerate, settle — no overshoot
 const SHUTTER_BLUR_PEAK_PX = 7; // how blurry the screen gets at the midpoint of the sweep — tune this one number to make the blur stronger/weaker
 
