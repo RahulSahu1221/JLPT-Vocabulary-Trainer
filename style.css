@@ -2025,7 +2025,8 @@ body.light-theme .score-big { text-shadow:none; }
     background:var(--glass-card); border:1px solid var(--border);
     border-top:1px solid rgba(255,255,255,0.18);
     padding:30px; border-radius:var(--radius-xl);
-    width:90%; max-width:400px;
+    width:92%; max-width:460px;               /* was 90% / 400px — a bit wider */
+    max-height:78vh; overflow-y:auto;          /* NEW — was unbounded height with no scroll */
     box-shadow:var(--card-shadow-hover);
     backdrop-filter: blur(24px) saturate(160%);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
@@ -3295,12 +3296,12 @@ body.light-theme .quiz-history-table th {
    anywhere else a modal needs a clear primary+secondary action pair) --- */
 .btn-primary,
 .btn-secondary {
-    padding: 12px 22px;
+    padding: 9px 16px;              /* was 12px 22px — a little smaller */
     border-radius: var(--radius-pill);
     font-family: var(--font-algerian);
-    font-size: 12px;
+    font-size: 11px;                /* was 12px */
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;          /* was 1.5px */
     text-transform: uppercase;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -3403,6 +3404,14 @@ body.light-theme .btn-secondary {
     will-change: transform;
 }
 
+/* Permanent guard: the real page must NEVER show a lingering blur. The
+   shutter's blur effect only ever targets the transient view-transition
+   snapshot pseudo-elements above (::view-transition-old/new(root)), never
+   these real elements — so this cannot block or interfere with the shutter
+   animation. It only closes off every possible path to a stuck blur (stale
+   deploys, interrupted transitions, browser quirks, anything). */
+html, body { filter: none !important; }
+
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    DISPLAY & ACCESSIBILITY SETTINGS
@@ -3498,6 +3507,15 @@ button, a, .mode-btn, .nav-btn, .card, .action-btn, .fab, .btn-primary, .btn-sec
        every frame of a hover/press animation; trim their blur radius only. */
     .quiz-box:hover, .mode-btn:hover, .btn-primary:hover {
         box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
+    }
+}
+
+@media (max-height: 700px) {
+    .pill-nav-wrap, .toast, .fab, .modal, .sd-drawer, .dash-card,
+    .quiz-box, .flash-face.front-face, .flash-face.back-face,
+    .readiness-card, .heatmap-wrap, .game-modal, .srs-dock {
+        backdrop-filter: blur(12px) saturate(140%) !important;
+        -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
     }
 }
 
