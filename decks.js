@@ -1983,8 +1983,13 @@ document.addEventListener("keydown", e => {
         return;
     }
     if (e.key === "d" || e.key === "D") {
-        if (D("createDeckOverlay")?.classList.contains("hidden") && D("deckViewOverlay")?.classList.contains("hidden")) {
-            e.preventDefault(); openDeckView();
+        e.preventDefault();
+        const deckViewOpen   = !D("deckViewOverlay")?.classList.contains("hidden");
+        const createDeckOpen = !D("createDeckOverlay")?.classList.contains("hidden");
+        if (deckViewOpen) {
+            closeDeckView();
+        } else if (!createDeckOpen) {
+            openDeckView();
         }
         return;
     }
