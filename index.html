@@ -163,20 +163,22 @@
                 <li role="none"><button class="mobile-menu-link" id="mDashboardBtn" role="menuitem" type="button" data-i18n-key="nav_home">Home</button></li>
                 <li role="none"><button class="mobile-menu-link" id="mVocabBtn" role="menuitem" type="button" data-i18n-key="nav_vocab">Vocab</button></li>
                 <li role="none"><button class="mobile-menu-link" id="mKanjiBtn" role="menuitem" type="button" data-i18n-key="nav_kanji">🈶 Kanji</button></li>
-                <li role="none"><button class="mobile-menu-link" id="mReviewBtn" role="menuitem" type="button">SRS
-                        Review</button></li>
+                <li role="none"><button class="mobile-menu-link" id="mReviewBtn" role="menuitem" type="button" data-i18n-key="nav_review_mobile">SRS Review</button></li>
                 <li role="none"><button class="mobile-menu-link" id="mQuizBtn" role="menuitem" type="button" data-i18n-key="nav_quiz">Quiz</button></li>
                 <li role="none"><button class="mobile-menu-link" id="mGamesBtn" role="menuitem" type="button" data-i18n-key="nav_games">Games</button></li>
                 <li role="none"><button class="mobile-menu-link" id="mAnalyticsBtn" role="menuitem" type="button" data-i18n-key="nav_analytics">Analytics</button></li>
-                <li role="none"><button class="mobile-menu-link" id="mDecksBtn" role="menuitem" type="button">My
-                        Decks</button></li>
+                <li role="none"><button class="mobile-menu-link" id="mDecksBtn" role="menuitem" type="button" data-i18n-key="nav_decks_mobile">My Decks</button></li>
                 <li role="none"><button class="mobile-menu-link" id="mThemeBtn" role="menuitem" type="button">Light
                         Mode</button></li>
-                <li role="none"><button class="mobile-menu-link" id="mSettingsBtn" role="menuitem" type="button">⚙️
-                        Settings</button></li>
+                <li role="none"><button class="mobile-menu-link" id="mSettingsBtn" role="menuitem" type="button">⚙️ <span data-i18n-key="modal_settings">Settings</span></button></li>
             </ul>
         </div>
     </div>
+
+    <!-- Manual nav show/hide control — sits just under the nav, independent of it
+         so it stays reachable even when the nav itself is collapsed offscreen. -->
+    <button class="nav-toggle-btn" id="navToggleBtn" type="button"
+        aria-label="Hide navigation bar" aria-expanded="true" aria-controls="pillNavWrap">∧</button>
 
     <!-- ═══ FLOATING TOOLBAR ═══ -->
     <div class="floating-toolbar" id="floatingToolbar" role="toolbar" aria-label="Lesson and search controls">
@@ -242,7 +244,7 @@
 
             <div class="dashboard-grid" role="region" aria-label="Study statistics">
                 <div class="dash-card">
-                    <h3>Daily Goal</h3>
+                    <h3 data-i18n-key="dash_daily_goal">Daily Goal</h3>
                     <div class="dash-stat" id="dailyGoalStat" aria-live="polite">0 / 20</div>
                     <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
                         aria-label="Daily goal progress">
@@ -250,60 +252,60 @@
                     </div>
                 </div>
                 <div class="dash-card">
-                    <h3>Current Streak</h3>
+                    <h3 data-i18n-key="dash_streak">Current Streak</h3>
                     <div class="dash-stat" style="color:var(--accent2)" id="streakStat" aria-live="polite">🔥 0 Days
                     </div>
                 </div>
                 <div class="dash-card">
-                    <h3>Total Learned</h3>
+                    <h3 data-i18n-key="dash_total_learned">Total Learned</h3>
                     <div class="dash-stat" style="color:var(--success)" id="totalLearnedStat" aria-live="polite">0 Words
                     </div>
                 </div>
                 <div class="dash-card">
-                    <h3>Due Reviews</h3>
+                    <h3 data-i18n-key="dash_due_reviews">Due Reviews</h3>
                     <div class="dash-stat" style="color:var(--danger)" id="dueReviewStat" aria-live="polite">0 Due</div>
                     <button class="nav-btn" id="startReviewFromDash" style="margin-top:10px; width:100%;" type="button"
                         aria-label="Start SRS review session">
-                        Start Review
+                        <span data-i18n-key="dash_start_review">Start Review</span>
                     </button>
                 </div>
             </div>
 
-            <h2 class="section-heading">Quick Actions</h2>
+            <h2 class="section-heading" data-i18n-key="dash_quick_actions">Quick Actions</h2>
             <div class="quick-actions" role="group" aria-label="Quick action shortcuts">
-                <button class="nav-btn" id="quickFavBtn" type="button">Favorites</button>
-                <button class="nav-btn" id="quickWeakBtn" type="button">Weak Words</button>
-                <button class="nav-btn" id="quickDecksBtn" type="button">My Decks</button>
-                <button class="nav-btn" id="quickChallengeBtn" type="button">Daily Challenge</button>
-                <button class="nav-btn" id="quickSpeedBtn" type="button">Speed Round</button>
+                <button class="nav-btn" id="quickFavBtn" type="button" data-i18n-key="dash_favorites">Favorites</button>
+                <button class="nav-btn" id="quickWeakBtn" type="button" data-i18n-key="dash_weak_words">Weak Words</button>
+                <button class="nav-btn" id="quickDecksBtn" type="button" data-i18n-key="dash_my_decks">My Decks</button>
+                <button class="nav-btn" id="quickChallengeBtn" type="button" data-i18n-key="dash_daily_challenge">Daily Challenge</button>
+                <button class="nav-btn" id="quickSpeedBtn" type="button" data-i18n-key="dash_speed_round">Speed Round</button>
             </div>
 
             <!-- DAILY CHALLENGE STATUS -->
             <div class="daily-challenge-wrap hidden" id="dailyChallengeWrap" role="status" aria-live="polite">
                 <div class="challenge-icon" aria-hidden="true">🎯</div>
                 <div class="challenge-info">
-                    <div class="challenge-title">Daily Challenge Active!</div>
+                    <div class="challenge-title" data-i18n-key="dash_challenge_active">Daily Challenge Active!</div>
                     <div class="challenge-sub" id="challengeSub">Study 5 special words for bonus XP</div>
                 </div>
                 <div class="challenge-progress" id="challengeProgress" aria-label="Challenge progress">0/5</div>
             </div>
 
 
-            <h2 class="section-heading">Achievements</h2>
+            <h2 class="section-heading" data-i18n-key="dash_achievements">Achievements</h2>
             <div class="achievements-list" id="achievementsList" aria-label="Achievement badges" aria-live="polite">
             </div>
         </section>
 
         <!-- ───────────────── ANALYTICS VIEW ───────────────── -->
         <section id="analyticsView" class="hidden view-panel" aria-label="Analytics">
-            <h2 class="algerian text-center" style="color:var(--accent); margin-bottom:20px;">Study Analytics</h2>
+            <h2 class="algerian text-center" style="color:var(--accent); margin-bottom:20px;" data-i18n-key="an_title">Study Analytics</h2>
 
             <!-- HEATMAP -->
-            <h2 class="section-heading">Study Heatmap</h2>
+            <h2 class="section-heading" data-i18n-key="an_heatmap">Study Heatmap</h2>
             <div class="heatmap-wrap" id="heatmapWrap" aria-label="Study activity heatmap over past 16 weeks"></div>
 
             <!-- JLPT READINESS -->
-            <h2 class="section-heading">JLPT Readiness</h2>
+            <h2 class="section-heading" data-i18n-key="an_readiness">JLPT Readiness</h2>
             <div class="readiness-wrap" id="readinessWrap" role="region" aria-label="JLPT readiness scores">
                 <div class="readiness-card">
                     <div class="readiness-label">N5</div>
@@ -324,7 +326,7 @@
             </div>
 
             <!-- QUIZ HISTORY -->
-            <h2 class="section-heading">Quiz History</h2>
+            <h2 class="section-heading" data-i18n-key="an_quiz_history">Quiz History</h2>
             <div class="quiz-history-wrap" style="overflow-x: auto; margin-top: 10px;">
                 <table class="quiz-history-table">
                     <thead>
@@ -346,7 +348,7 @@
         <!-- ───────────────── VOCAB VIEW ───────────────── -->
         <!-- ───────────────── KANJI LIST ───────────────── -->
         <section id="kanjiView" class="hidden view-panel" aria-label="Kanji list">
-            <h2 class="algerian text-center" style="color:var(--accent); margin-bottom:20px;">Kanji Reference</h2>
+            <h2 class="algerian text-center" style="color:var(--accent); margin-bottom:20px;" data-i18n-key="view_kanji_title">Kanji Reference</h2>
             <div id="kanjiList" style="margin-bottom:80px;">
                 <!-- Filled via JS -->
             </div>
@@ -383,7 +385,7 @@
         <!-- ───────────────── REVIEW VIEW ───────────────── -->
         <section id="reviewView" class="hidden view-panel" aria-label="Spaced Repetition Review">
             <div class="quiz-box srs-box">
-                <h2 class="algerian text-center" style="color:var(--accent3);">Spaced Repetition</h2>
+                <h2 class="algerian text-center" style="color:var(--accent3);" data-i18n-key="view_review_title">Spaced Repetition</h2>
                 <p id="srsCounter" class="text-center" style="margin-top:10px; color:var(--text-tertiary);"
                     aria-live="polite" aria-atomic="true">Card 1 / 1</p>
 
@@ -497,7 +499,7 @@
 
         <!-- ───────────────── GAMES VIEW ───────────────── -->
         <section id="gamesView" class="hidden view-panel" aria-label="Mini games">
-            <h2 class="algerian text-center" style="color:var(--accent2); font-size:20px; margin-bottom:6px;">Mini Games
+            <h2 class="algerian text-center" style="color:var(--accent2); font-size:20px; margin-bottom:6px;" data-i18n-key="view_games_title">Mini Games
             </h2>
             <p class="text-center" style="color:var(--text-tertiary); font-size:13px; margin-bottom:18px;">Choose a game
                 to practise your Japanese vocabulary!</p>
@@ -541,7 +543,7 @@
     <div class="modal-overlay hidden" id="feedbackOverlay" role="dialog" aria-labelledby="feedbackTitle"
         aria-modal="true">
         <div class="modal">
-            <h2 id="feedbackTitle" class="algerian" style="color:var(--accent);">Send Feedback</h2>
+            <h2 id="feedbackTitle" class="algerian" style="color:var(--accent);" data-i18n-key="modal_feedback">Send Feedback</h2>
             <select id="feedbackCategory" class="modal-input" aria-label="Feedback category" data-glass="true">
                 <option value="Feature Request">Feature Request</option>
                 <option value="Bug Report">Bug Report</option>
@@ -551,9 +553,9 @@
             <textarea id="feedbackText" class="modal-input" rows="4" placeholder="Describe your feedback…"
                 aria-label="Feedback message" maxlength="2000"></textarea>
             <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="nav-btn" style="flex:1" id="submitFeedbackBtn" type="button">Send</button>
+                <button class="nav-btn" style="flex:1" id="submitFeedbackBtn" type="button" data-i18n-key="btn_send">Send</button>
                 <button class="nav-btn" style="flex:1; border-color:var(--text-muted); color:var(--text-muted);"
-                    id="cancelFeedbackBtn" type="button">Cancel</button>
+                    id="cancelFeedbackBtn" type="button" data-i18n-key="btn_cancel">Cancel</button>
             </div>
         </div>
     </div>
@@ -563,7 +565,7 @@
         aria-modal="true">
         <div class="modal deck-modal">
             <div class="deck-modal-header">
-                <h2 id="createDeckTitle" class="algerian" style="color:var(--accent);">Create Deck</h2>
+                <h2 id="createDeckTitle" class="algerian" style="color:var(--accent);" data-i18n-key="modal_create_deck">Create Deck</h2>
                 <button class="modal-close-btn" id="closeCreateDeckBtn" type="button"
                     aria-label="Close create deck dialog">✕</button>
             </div>
@@ -585,10 +587,9 @@
                 <span class="deck-privacy-label">🌐 Public</span>
             </div>
             <div style="display:flex; gap:10px; margin-top:18px;">
-                <button class="nav-btn deck-create-btn" id="saveDeckBtn" type="button" style="flex:1;">✅ Create
-                    Deck</button>
+                <button class="nav-btn deck-create-btn" id="saveDeckBtn" type="button" style="flex:1;">✅ <span data-i18n-key="btn_create_deck">Create Deck</span></button>
                 <button class="nav-btn" id="cancelCreateDeckBtn" type="button"
-                    style="flex:1; border-color:var(--text-muted); color:var(--text-muted);">Cancel</button>
+                    style="flex:1; border-color:var(--text-muted); color:var(--text-muted);" data-i18n-key="btn_cancel">Cancel</button>
             </div>
         </div>
     </div>
@@ -597,7 +598,7 @@
     <div class="modal-overlay hidden" id="deckViewOverlay" role="dialog" aria-label="My Decks" aria-modal="true">
         <div class="modal deck-view-modal">
             <div class="deck-modal-header">
-                <h2 class="algerian" style="color:var(--accent);">My Decks</h2>
+                <h2 class="algerian" style="color:var(--accent);" data-i18n-key="modal_my_decks">My Decks</h2>
                 <button class="modal-close-btn" id="closeDeckViewBtn" type="button"
                     aria-label="Close decks dialog">✕</button>
             </div>
@@ -620,7 +621,7 @@
         aria-modal="true">
         <div class="modal word-detail-modal">
             <div class="deck-modal-header">
-                <h2 id="wordDetailTitle" class="algerian" style="color:var(--accent3);">Word Detail</h2>
+                <h2 id="wordDetailTitle" class="algerian" style="color:var(--accent3);" data-i18n-key="modal_word_detail">Word Detail</h2>
                 <button class="modal-close-btn" id="closeWordDetailBtn" type="button"
                     aria-label="Close word detail dialog">✕</button>
             </div>
@@ -632,7 +633,7 @@
     <div class="modal-overlay hidden" id="deckPickerOverlay" role="dialog" aria-label="Add to Deck" aria-modal="true">
         <div class="modal deck-picker-modal">
             <div class="deck-modal-header">
-                <h2 class="algerian" style="color:var(--accent);">Add to Deck</h2>
+                <h2 class="algerian" style="color:var(--accent);" data-i18n-key="modal_add_to_deck">Add to Deck</h2>
                 <button class="modal-close-btn" id="closeDeckPickerBtn" type="button"
                     aria-label="Close deck picker">✕</button>
             </div>
@@ -645,30 +646,49 @@
         aria-modal="true">
         <div class="modal">
             <div class="deck-modal-header">
-                <h2 class="algerian" style="color:var(--accent2);">Keyboard Shortcuts</h2>
+                <h2 class="algerian" style="color:var(--accent2);" data-i18n-key="sc_title">Keyboard Shortcuts</h2>
                 <button class="modal-close-btn" id="closeShortcutBtn" type="button"
                     aria-label="Close shortcuts dialog">✕</button>
             </div>
+            <div class="shortcut-group-label" data-i18n-key="sc_group_nav">Navigation</div>
             <div class="shortcut-grid" role="list">
-                <div class="shortcut-row" role="listitem"><kbd>Space</kbd><span>Flip card</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>Enter</kbd><span>Flip card</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>←</kbd><kbd>→</kbd><span>Prev / Next card</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>1</kbd><span>Again</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>2</kbd><span>Hard</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>3</kbd><span>Good</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>4</kbd><span>Easy</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>Z</kbd><span>Undo last rating</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>F</kbd><span>Favorite current word</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>S</kbd><span>Play audio</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>I</kbd><span>Word detail</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>D</kbd><span>Open My Decks</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>?</kbd><span>This cheatsheet</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>Ctrl</kbd>+<kbd>K</kbd><span>Command palette</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>Esc</kbd><span>Close any modal</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>H</kbd><span>Go Home</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>V</kbd><span>Go to Vocab</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>R</kbd><span>Go to Review</span></div>
-                <div class="shortcut-row" role="listitem"><kbd>Q</kbd><span>Go to Quiz</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>H</kbd><span data-i18n-key="sc_home">Go Home</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>V</kbd><span data-i18n-key="sc_vocab">Go to Vocab</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>R</kbd><span data-i18n-key="sc_review">Go to Review</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>Q</kbd><span data-i18n-key="sc_quiz">Go to Quiz</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>G</kbd><span data-i18n-key="sc_games">Open Games (press again to leave)</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>D</kbd><span data-i18n-key="sc_decks">Open / close My Decks</span></div>
+            </div>
+
+            <div class="shortcut-group-label" data-i18n-key="sc_group_actions">Actions</div>
+            <div class="shortcut-grid" role="list">
+                <div class="shortcut-row" role="listitem"><kbd>T</kbd><span data-i18n-key="sc_theme">Toggle dark / light theme</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>S</kbd><span data-i18n-key="sc_settings">Open / close Settings</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>E</kbd><span data-i18n-key="sc_export">Export backup</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>C</kbd><span data-i18n-key="sc_challenge">Start / close Daily Challenge</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>A</kbd><span data-i18n-key="sc_speedround">Start / close Speed Round</span></div>
+            </div>
+
+            <div class="shortcut-group-label" data-i18n-key="sc_group_review">During Review (S doubles as Play Audio here)</div>
+            <div class="shortcut-grid" role="list">
+                <div class="shortcut-row" role="listitem"><kbd>Space</kbd><span data-i18n-key="sc_flip">Flip card</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>Enter</kbd><span data-i18n-key="sc_flip2">Flip card</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>←</kbd><kbd>→</kbd><span data-i18n-key="sc_prevnext">Prev / Next card</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>1</kbd><span data-i18n-key="sc_again">Again</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>2</kbd><span data-i18n-key="sc_hard">Hard</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>3</kbd><span data-i18n-key="sc_good">Good</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>4</kbd><span data-i18n-key="sc_easy">Easy</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>Z</kbd><span data-i18n-key="sc_undo">Undo last rating</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>F</kbd><span data-i18n-key="sc_fav">Favorite current word</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>S</kbd><span data-i18n-key="sc_audio">Play audio</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>I</kbd><span data-i18n-key="sc_detail">Word detail</span></div>
+            </div>
+
+            <div class="shortcut-group-label" data-i18n-key="sc_group_general">General</div>
+            <div class="shortcut-grid" role="list">
+                <div class="shortcut-row" role="listitem"><kbd>?</kbd><span data-i18n-key="sc_cheatsheet">This cheatsheet</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>Ctrl</kbd>+<kbd>K</kbd><span data-i18n-key="sc_palette">Command palette</span></div>
+                <div class="shortcut-row" role="listitem"><kbd>Esc</kbd><span data-i18n-key="sc_esc">Close any modal</span></div>
             </div>
         </div>
     </div>
@@ -778,7 +798,7 @@
                     <input type="text" id="shirInput" class="typing-input" placeholder="Type the next word…"
                         autocomplete="off" autocapitalize="none" spellcheck="false"
                         aria-label="Type the next word in the chain">
-                    <button class="nav-btn" id="shirSubmit" type="button" aria-label="Submit word">Submit</button>
+                    <button class="nav-btn" id="shirSubmit" type="button" aria-label="Submit word" data-i18n-key="btn_submit">Submit</button>
                 </div>
                 <div id="shirFeedback"
                     style="text-align:center;margin-top:10px;font-family:var(--font-mono);font-size:13px;min-height:20px;"
@@ -841,7 +861,7 @@
         <div class="sd-panel" id="sdPanel">
             <div class="sd-header">
                 <h2 class="algerian" style="color:var(--accent); font-size:18px; letter-spacing:2px; margin:0;">⚙️
-                    Settings</h2>
+                    <span data-i18n-key="modal_settings">Settings</span></h2>
                 <button class="modal-close-btn" id="sdCloseBtn" type="button"
                     aria-label="Close settings panel">✕</button>
             </div>
@@ -852,30 +872,30 @@
                 <div class="sd-section sd-stagger">
                     <div class="sd-section-label" data-i18n-key="sd_study_behavior">Study Behavior</div>
                     <div class="dash-card" style="margin-top:8px;">
-                        <label for="sdNewCardsPerDay" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">New Cards / Day:</label>
+                        <label for="sdNewCardsPerDay" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_new_cards">New Cards / Day:</label>
                         <input type="number" id="sdNewCardsPerDay" class="typing-input" style="width:100%; margin-bottom:12px; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.1); color:inherit;" value="10" min="1" max="100">
                         
-                        <label for="sdReviewOrder" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">Review Order:</label>
+                        <label for="sdReviewOrder" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_review_order">Review Order:</label>
                         <select id="sdReviewOrder" class="nav-btn" style="width:100%; margin-bottom:12px;" data-glass="true">
-                            <option value="due-soonest">Due Soonest</option>
-                            <option value="random">Random</option>
-                            <option value="hardest-first">Hardest First</option>
+                            <option value="due-soonest" data-i18n-key="sd_due_soonest">Due Soonest</option>
+                            <option value="random" data-i18n-key="sd_random">Random</option>
+                            <option value="hardest-first" data-i18n-key="sd_hardest_first">Hardest First</option>
                         </select>
                         
-                        <label for="sdQuizLength" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">Quiz Length (Questions):</label>
+                        <label for="sdQuizLength" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_quiz_length">Quiz Length (Questions):</label>
                         <input type="range" id="sdQuizLength" min="5" max="50" step="5" value="20" style="width:100%; margin-bottom:12px;">
                         <div id="sdQuizLengthVal" style="font-size:12px; text-align:right; margin-top:-8px; margin-bottom:12px;">20</div>
                         
-                        <label for="sdDefaultQuizMode" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">Default Quiz Mode:</label>
+                        <label for="sdDefaultQuizMode" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_default_quiz_mode">Default Quiz Mode:</label>
                         <select id="sdDefaultQuizMode" class="nav-btn" style="width:100%; margin-bottom:12px;" data-glass="true">
-                            <option value="kanjiToMeaning">Kanji → Meaning</option>
-                            <option value="meaningToKanji">Meaning → Kanji</option>
-                            <option value="listening">Listening</option>
+                            <option value="kanjiToMeaning" data-i18n-key="sd_kanji_to_meaning">Kanji → Meaning</option>
+                            <option value="meaningToKanji" data-i18n-key="sd_meaning_to_kanji">Meaning → Kanji</option>
+                            <option value="listening" data-i18n-key="sd_listening">Listening</option>
                         </select>
                         
                         <div style="display:flex; align-items:center; gap:10px;">
                             <input type="checkbox" id="sdQuizTimed" style="transform:scale(1.2);">
-                            <label for="sdQuizTimed" style="font-size:13px; color:var(--text-secondary);">Timed Quizzes (10s/q)</label>
+                            <label for="sdQuizTimed" style="font-size:13px; color:var(--text-secondary);" data-i18n-key="sd_timed_quizzes">Timed Quizzes (10s/q)</label>
                         </div>
                     </div>
                 </div>
@@ -884,18 +904,18 @@
                 <div class="sd-section sd-stagger">
                     <div class="sd-section-label" data-i18n-key="sd_audio">Audio</div>
                     <div class="dash-card" style="margin-top:8px;">
-                        <label for="sdTTSVoice" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">TTS Voice:</label>
+                        <label for="sdTTSVoice" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_tts_voice">TTS Voice:</label>
                         <select id="sdTTSVoice" class="nav-btn" style="width:100%; margin-bottom:12px;" data-glass="true">
-                            <option value="default">Auto (System Default)</option>
+                            <option value="default" data-i18n-key="sd_auto_default">Auto (System Default)</option>
                         </select>
                         
-                        <label for="sdTTSRate" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">Speech Rate:</label>
+                        <label for="sdTTSRate" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_speech_rate">Speech Rate:</label>
                         <input type="range" id="sdTTSRate" min="0.5" max="2.0" step="0.1" value="0.95" style="width:100%; margin-bottom:12px;">
                         <div id="sdTTSRateVal" style="font-size:12px; text-align:right; margin-top:-8px; margin-bottom:12px;">0.95x</div>
                         
                         <div style="display:flex; align-items:center; gap:10px;">
                             <input type="checkbox" id="sdMuteAudio" style="transform:scale(1.2);">
-                            <label for="sdMuteAudio" style="font-size:13px; color:var(--text-secondary);">Mute All Audio</label>
+                            <label for="sdMuteAudio" style="font-size:13px; color:var(--text-secondary);" data-i18n-key="sd_mute_audio">Mute All Audio</label>
                         </div>
                     </div>
                 </div>
@@ -906,17 +926,17 @@
                     <div class="dash-card" style="margin-top:8px;">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
                             <input type="checkbox" id="sdPushEnabled" style="transform:scale(1.2);">
-                            <label for="sdPushEnabled" style="font-size:13px; color:var(--text-secondary);">Enable Review Reminders</label>
+                            <label for="sdPushEnabled" style="font-size:13px; color:var(--text-secondary);" data-i18n-key="sd_enable_reminders">Enable Review Reminders</label>
                         </div>
                         
                         <div id="sdReminderTimeWrap" style="opacity:0.5; pointer-events:none;">
-                            <label for="sdReminderTime" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">Reminder Time:</label>
+                            <label for="sdReminderTime" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_reminder_time">Reminder Time:</label>
                             <input type="time" id="sdReminderTime" class="typing-input" style="width:100%; margin-bottom:12px; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.1); color:inherit;" value="18:00">
                         </div>
                         
                         <div style="display:flex; align-items:center; gap:10px;">
                             <input type="checkbox" id="sdStreakReminder" style="transform:scale(1.2);">
-                            <label for="sdStreakReminder" style="font-size:13px; color:var(--text-secondary);">Streak-at-Risk Warning</label>
+                            <label for="sdStreakReminder" style="font-size:13px; color:var(--text-secondary);" data-i18n-key="sd_streak_warning">Streak-at-Risk Warning</label>
                         </div>
                     </div>
                 </div>
@@ -925,25 +945,25 @@
                 <div class="sd-section sd-stagger">
                     <div class="sd-section-label" data-i18n-key="sd_display">Display & Accessibility</div>
                     <div class="dash-card" style="margin-top:8px;">
-                        <label for="sdThemeMode" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">Theme Mode:</label>
+                        <label for="sdThemeMode" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_theme_mode">Theme Mode:</label>
                         <select id="sdThemeMode" class="nav-btn" style="width:100%; margin-bottom:12px;" data-glass="true">
-                            <option value="system">Sync with System</option>
-                            <option value="dark">Dark</option>
-                            <option value="light">Light</option>
+                            <option value="system" data-i18n-key="sd_sync_system">Sync with System</option>
+                            <option value="dark" data-i18n-key="sd_dark">Dark</option>
+                            <option value="light" data-i18n-key="sd_light">Light</option>
                         </select>
                         
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
                             <input type="checkbox" id="sdReduceMotion" style="transform:scale(1.2);">
-                            <label for="sdReduceMotion" style="font-size:13px; color:var(--text-secondary);">Reduce Motion</label>
+                            <label for="sdReduceMotion" style="font-size:13px; color:var(--text-secondary);" data-i18n-key="sd_reduce_motion">Reduce Motion</label>
                         </div>
                         
-                        <label for="sdFontScale" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">Font Size Scaling:</label>
+                        <label for="sdFontScale" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_font_scale">Font Size Scaling:</label>
                         <input type="range" id="sdFontScale" min="0.8" max="1.5" step="0.1" value="1.0" style="width:100%; margin-bottom:12px;">
                         <div id="sdFontScaleVal" style="font-size:12px; text-align:right; margin-top:-8px; margin-bottom:12px;">1.0x</div>
                         
                         <div style="display:flex; align-items:center; gap:10px;">
                             <input type="checkbox" id="sdCardDensity" style="transform:scale(1.2);">
-                            <label for="sdCardDensity" style="font-size:13px; color:var(--text-secondary);">Compact Card Density</label>
+                            <label for="sdCardDensity" style="font-size:13px; color:var(--text-secondary);" data-i18n-key="sd_card_density">Compact Card Density</label>
                         </div>
                     </div>
                 </div>
@@ -952,17 +972,17 @@
                 <div class="sd-section sd-stagger">
                     <div class="sd-section-label" data-i18n-key="sd_data">Data Management</div>
                     <div class="dash-card" style="margin-top:8px;">
-                        <button class="nav-btn" id="sdExportBtn" type="button" style="width:100%; margin-bottom:8px;">⬇️ Export Backup</button>
-                        <div id="sdLastBackup" style="font-size:11px; color:var(--text-muted); text-align:center; margin-bottom:12px;">Never backed up</div>
+                        <button class="nav-btn" id="sdExportBtn" type="button" style="width:100%; margin-bottom:8px;"><span data-i18n-key="sd_export">⬇️ Export Backup</span></button>
+                        <div id="sdLastBackup" style="font-size:11px; color:var(--text-muted); text-align:center; margin-bottom:12px;" data-i18n-key="sd_never_backed_up">Never backed up</div>
                         
                         <input type="file" id="sdImportFile" accept=".json" style="display:none;" aria-label="Import backup JSON file">
-                        <button class="nav-btn" id="sdImportBtn" type="button" style="width:100%; margin-bottom:12px;">⬆️ Import Backup</button>
+                        <button class="nav-btn" id="sdImportBtn" type="button" style="width:100%; margin-bottom:12px;"><span data-i18n-key="sd_import">⬆️ Import Backup</span></button>
                         
-                        <button class="nav-btn" id="sdClearCacheBtn" type="button" style="width:100%; margin-bottom:12px;">🧹 Clear Cache / Force Update</button>
+                        <button class="nav-btn" id="sdClearCacheBtn" type="button" style="width:100%; margin-bottom:12px;"><span data-i18n-key="sd_clear_cache">🧹 Clear Cache / Force Update</span></button>
 
-                        <button class="nav-btn hidden" id="sdInstallAppBtn" type="button" style="width:100%; margin-bottom:12px; color:var(--accent); border-color:var(--accent);">📲 Install RONIN App</button>
+                        <button class="nav-btn hidden" id="sdInstallAppBtn" type="button" style="width:100%; margin-bottom:12px; color:var(--accent); border-color:var(--accent);"><span data-i18n-key="sd_install">📲 Install RONIN App</span></button>
                         
-                        <button class="nav-btn" id="sdResetBtn" type="button" style="width:100%; border-color:var(--danger); color:var(--danger);">⚠️ Reset Progress</button>
+                        <button class="nav-btn" id="sdResetBtn" type="button" style="width:100%; border-color:var(--danger); color:var(--danger);"><span data-i18n-key="sd_reset">⚠️ Reset Progress</span></button>
                     </div>
                 </div>
 
@@ -974,7 +994,6 @@
                         <select id="sdLangSelect" class="nav-btn" style="width:100%;" aria-label="App language" data-glass="true">
                             <option value="en">English</option>
                             <option value="es">Español</option>
-                            <option value="ja">日本語</option>
                             <option value="id">Bahasa Indonesia</option>
                             <option value="zh-TW">繁體中文（台灣）</option>
                             <option value="vi">Tiếng Việt</option>
@@ -990,7 +1009,7 @@
                 <div class="sd-section sd-stagger">
                     <div class="sd-section-label" data-i18n-key="sd_profile">Profile</div>
                     <div class="dash-card" style="margin-top:8px;">
-                        <label for="sdUserName" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">Display Name:</label>
+                        <label for="sdUserName" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_display_name">Display Name:</label>
                         <input type="text" id="sdUserName" class="typing-input" style="width:100%; margin-bottom:12px; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.1); color:inherit;" placeholder="Learner" aria-label="Set your name">
                     </div>
                 </div>
@@ -999,16 +1018,16 @@
                 <div class="sd-section sd-stagger">
                     <div class="sd-section-label" data-i18n-key="sd_gamification">Gamification</div>
                     <div class="dash-card" style="margin-top:8px;">
-                        <label for="sdGoalSelect" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;">Daily Goal (Words):</label>
+                        <label for="sdGoalSelect" style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:5px;" data-i18n-key="sd_daily_goal_words">Daily Goal (Words):</label>
                         <select id="sdGoalSelect" class="nav-btn" style="width:100%; margin-bottom:12px;" aria-label="Set daily word goal" data-glass="true">
-                            <option value="10">10 Words</option>
-                            <option value="20" selected>20 Words</option>
-                            <option value="50">50 Words</option>
+                            <option value="10" data-i18n-key="sd_10_words">10 Words</option>
+                            <option value="20" selected data-i18n-key="sd_20_words">20 Words</option>
+                            <option value="50" data-i18n-key="sd_50_words">50 Words</option>
                         </select>
                         
                         <div style="display:flex; align-items:center; gap:10px;">
                             <input type="checkbox" id="sdShowGamification" style="transform:scale(1.2);" checked>
-                            <label for="sdShowGamification" style="font-size:13px; color:var(--text-secondary);">Show XP & Achievements</label>
+                            <label for="sdShowGamification" style="font-size:13px; color:var(--text-secondary);" data-i18n-key="sd_show_gamification">Show XP & Achievements</label>
                         </div>
                     </div>
                 </div>
@@ -1236,8 +1255,8 @@
             </div>
             
             <div class="rules-actions">
-                <button class="btn-secondary" id="rulesCancelBtn" type="button">Cancel</button>
-                <button class="btn-primary" id="rulesStartBtn" type="button">Let's Go 🚀</button>
+                <button class="btn-secondary" id="rulesCancelBtn" type="button" data-i18n-key="btn_cancel">Cancel</button>
+                <button class="btn-primary" id="rulesStartBtn" type="button"><span data-i18n-key="btn_lets_go">Let's Go</span> 🚀</button>
             </div>
         </div>
     </div>
