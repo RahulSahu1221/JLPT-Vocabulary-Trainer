@@ -223,6 +223,53 @@ body.light-theme .pill-nav-wrap {
 
 .pill-nav-wrap.nav-hidden { transform:translateY(-110%); }
 
+/* ═══════════════════════════════════════════════════════════
+   MANUAL NAV TOGGLE — replaces the old scroll-triggered auto-hide.
+   The button is a sibling of .pill-nav-wrap (not a child) so it keeps
+   its own fixed position and stays clickable even while the nav itself
+   is translated off-screen.
+═══════════════════════════════════════════════════════════ */
+.nav-toggle-btn {
+    position: fixed;
+    top: calc(var(--nav-h, 74px) + 6px);
+    right: 16px;
+    z-index: 1001; /* above the nav (1000) so it's always reachable */
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass-card);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition:
+        top 0.38s var(--ease-out),
+        transform 0.2s var(--ease-spring),
+        background 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+}
+.nav-toggle-btn:hover {
+    transform: scale(1.1);
+    border-color: var(--accent3);
+    color: var(--accent3);
+}
+.nav-toggle-btn:active { transform: scale(0.92); }
+
+/* When the nav is collapsed, the button tucks up near the very top of the
+   screen instead of leaving a big empty gap where the nav used to be. */
+.nav-toggle-btn.nav-is-collapsed { top: 10px; }
+
+body.light-theme .nav-toggle-btn { background: rgba(255,255,255,0.6); }
+
 /* Brand wordmark — right-aligned in nav, inherits nav-hidden transform automatically
    because it lives inside #pillNavWrap */
 .pill-brand {
@@ -2065,6 +2112,16 @@ body.light-theme .cmd-palette {
    KEYBOARD SHORTCUTS OVERLAY
 ═══════════════════════════════════════════════════════════ */
 .shortcut-grid { display:flex; flex-direction:column; gap:6px; margin-top:4px; max-height:70vh; overflow-y:auto; }
+.shortcut-group-label {
+    font-family: var(--font-algerian);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin: 16px 0 6px;
+}
+.shortcut-group-label:first-of-type { margin-top: 6px; }
 .shortcut-row {
     display:flex; align-items:center; gap:8px; padding:7px 12px;
     background:var(--surface-raised); border:1px solid var(--border);
