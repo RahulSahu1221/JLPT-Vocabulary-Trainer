@@ -1,30 +1,6 @@
 /* theme-shutter.js
    ═══════════════════════════════════════════════════════════════════════════
    RONIN — Japanese shop-shutter theme transition.
-
-   How it works (matches the physical metaphor exactly):
-   1. We ask the browser for a View Transition (document.startViewTransition).
-      The browser itself takes a real pixel snapshot of the page BEFORE the
-      theme class changes ("old"), lets our callback flip the theme class,
-      then takes a second snapshot AFTER ("new"). Both snapshots exist at the
-      same time, "new" stacked directly above "old" — this is native browser
-      behavior, not something we build by hand, so it costs nothing extra to
-      capture and composites entirely on the GPU.
-   2. By default the browser cross-fades old → new. We turn that default off
-      in CSS and instead animate the "new" snapshot's clip-path ourselves,
-      from fully hidden to fully revealed, top → bottom. That clip line IS
-      the shutter edge.
-   3. A thin fixed gradient bar ("shutter-edge") tracks the exact same
-      keyframes to give the edge a soft drop-shadow + hint of motion blur,
-      so it reads as a physical shutter rather than a flat wipe.
-   4. Both snapshots also blur up to a small peak at the sweep's midpoint and
-      sharpen back to 0 by the time it ends — a whip-pan style motion blur
-      that rides along with the edge instead of sitting on screen as a flat
-      overlay.
-
-   No colors and no CSS custom properties are ever animated here — only
-   clip-path, filter, and transform, all of which the compositor can run at
-   60fps without repainting the page underneath.
    ═══════════════════════════════════════════════════════════════════════════ */
 "use strict";
 
